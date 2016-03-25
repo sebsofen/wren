@@ -1,5 +1,5 @@
 import akka.NotUsed
-import akka.stream.ClosedShape
+import akka.stream.{ActorMaterializer, ClosedShape}
 import akka.stream.scaladsl._
 import api.Post
 import com.typesafe.config.Config
@@ -12,7 +12,8 @@ import akka.stream.scaladsl._
 /**
   * Created by sebastian on 14/03/16.
   */
-class FilePostsRepository(implicit config: Config) extends PostsRepository {
+class FilePostsRepository(implicit config: Config,  materializer :ActorMaterializer) extends PostsRepository {
+  implicit val personFormat: JsonReader[MetadataJson] = jsonFormat1(MetadataJson)
   val postsdir = config.getString("postsfilerepository.postsdir")
 
   override def getPostBySlug(slug: String): Future[Option[Post]] = {
