@@ -33,5 +33,9 @@ object BlogEngine extends App with Protocol{
   implicit val cfg = config;
   override val logger = Logging(system, getClass)
 
+  val filepostsrepository = new FilePostsRepository()
+
+  filepostsrepository.getPostBySlug("bash_rename_files").foreach( post =>  println(post) )
+
   Http().bindAndHandle(routes, config.getString("http.interface"), config.getInt("http.port"))
 }
