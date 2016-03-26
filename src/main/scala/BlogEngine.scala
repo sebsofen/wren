@@ -35,7 +35,7 @@ object BlogEngine extends App with Protocol{
 
   val filepostsrepository = new FilePostsRepository()
 
-  filepostsrepository.getPostBySlug("bash_rename_files").foreach( post =>  println(post) )
+  filepostsrepository.getPostBySlug("bash_rename_filess").foreach( post =>  println(post) )
 
   Http().bindAndHandle(routes, config.getString("http.interface"), config.getInt("http.port"))
 }
