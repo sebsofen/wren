@@ -3,15 +3,21 @@ package api
 /**
   * Created by sebastian on 26/03/16.
   */
-case class PostMetadata(title: String, created: Long, tags: Seq[String])
+case class PostMetadata(title: String, created: Long, tags: Seq[String] = Seq(), slug: String)
 
 
-object PostMetadata  {
+object PostMetadatas  {
 
   def sortByCreationDate(a : PostMetadata, b : PostMetadata) = {
+    println("sorting" + a.created + " " + b.created)
     a.created < b.created
   }
 
+  /**
+    * #nofilter -> default filtering behavior
+    * @param a
+    * @return
+    */
   def filterGetAll(a : PostMetadata) = true
 
   /**

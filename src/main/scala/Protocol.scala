@@ -30,7 +30,7 @@ trait Protocol extends Protocols {
 
     path("posts" ) {
       get {
-        parameters('start.as[Int].?, 'stop) {  (maybeStart, stop) =>
+        parameters('start.as[Int].?, 'stop) {  (maybeStart , stop) =>
           complete {
             "hii" + "as"
           }

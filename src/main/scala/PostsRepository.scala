@@ -5,4 +5,5 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
   */
 trait PostsRepository {
   def getPostBySlug(slug: String) : Future[Option[Post]]
+
 }
