@@ -23,22 +23,29 @@ import spray.json.DefaultJsonProtocol
 /**
   * Created by sebastian on 10/03/16.
   */
-object BlogEngine extends App with Protocol{
+object BlogEngine extends App with Protocol {
 
   override implicit val system = ActorSystem()
   override implicit val executor = system.dispatcher
   override implicit val materializer = ActorMaterializer()
+  val config = ConfigFactory.load()
 
-  override val config = ConfigFactory.load()
-  implicit val cfg = config;
+  override implicit val cfg = config;
+
+
   override val logger = Logging(system, getClass)
 
-  val filepostsrepository = new FilePostsRepository()
+
+  Http().bindAndHandle(routes, config.getString("http.interface"), config.getInt("http.port"))
+
+
+
+  //val filepostsrepository = new FilePostsRepository()
 
   //filepostsrepository.getPostBySlug("bash_rename_filess").foreach( post =>  println(post) )
 
-  filepostsrepository.getPosts().andThen {
-    case f => f.get.foreach(println)
-    }
-  Http().bindAndHandle(routes, config.getString("http.interface"), config.getInt("http.port"))
+  //filepostsrepository.getPosts().andThen {
+  //  case f => f.get.foreach(println)
+ //   }
+ // Http().bindAndHandle(routes, config.getString("http.interface"), config.getInt("http.port"))
 }
