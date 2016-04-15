@@ -34,7 +34,7 @@ trait Protocol extends PostJsonSupport{
     path("posts" / "by-slug" / Segment) { slug =>
       //val ask = blogActor ? GetPostBySlug(slug)
 
-      complete { Future.successful(PostAsm(PostMetadata("hi",1,Seq.empty[String],slug),Post("hi"))) }
+      complete { Future.successful(Future.successful(PostAsm(PostMetadata("hi",1,Seq.empty[String],slug),Post("hi")))) }
     }
 
   }
