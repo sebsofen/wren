@@ -35,6 +35,8 @@ object BlogEngine extends App with Protocol {
 
   override val logger = Logging(system, getClass)
 
+  implicit val postsRepository = new PostsRepository
+
 
   Http().bindAndHandle(routes, config.getString("http.interface"), config.getInt("http.port"))
 

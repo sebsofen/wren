@@ -14,15 +14,16 @@ import scala.concurrent.{Future, ExecutionContextExecutor}
 /**
   * Created by sebastian on 11/04/16.
   */
-trait Protocols extends DefaultJsonProtocol
 
-trait Protocol extends Protocols{
+trait Protocol extends PostJsonSupport{
   implicit val system: ActorSystem
   implicit val timeout = Timeout(5 seconds)
   implicit def executor: ExecutionContextExecutor
   implicit val materializer: ActorMaterializer
   implicit val cfg: Config
   val logger: LoggingAdapter
+
+  //val blogController = new BlogController
 
 
   lazy val blogActor = system.actorOf(BlogActor.props(), "blog")
@@ -31,15 +32,9 @@ trait Protocol extends Protocols{
     import BlogActor._
 
     path("posts" / "by-slug" / Segment) { slug =>
+      //val ask = blogActor ? GetPostBySlug(slug)
 
-      val req = blogActor ? GetPostBySlug(slug)
-
-      //TDO IDK complete{req}
-
-
-
-
-
+      complete { Future.successful(PostAsm(PostMetadata("hi",1,Seq.empty[String],slug),Post("hi"))) }
     }
 
   }
