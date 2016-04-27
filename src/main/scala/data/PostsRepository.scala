@@ -1,8 +1,10 @@
 package data
 
+import java.io.File
 import akka.stream.scaladsl._
 import akka.stream.{ActorMaterializer, FlowShape}
 import com.typesafe.config.Config
+import model.Posts
 import model.Posts._
 import spray.json._
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,25 +21,18 @@ class PostsRepository(implicit config: Config,  materializer :ActorMaterializer,
 
 
 
+  def getPosts(limit: Int, offset: Int, compact: Boolean, sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate, filterBy: PostAsm => Boolean = Posts.filterGetAll) = {
+    val repdir = new File(repodir)
+    Source.fromIterator(() => repdir.listFiles.filter(_.isDirectory).toIterator)
+      .map(f => f.getName)
+      .via(slugToMetadata)
+      .grouped(Int.MaxValue).map(_.sortWith(sortBy).drop(offset)).map(f => f.map(f =>PostAsm(f,Post(scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString)))).runWith(Sink.head)
+  }
 
-
-  val  bytestreamflow: Flow[String,Tuple2[PostMetadata,Post], Unit] = Flow.fromGraph(GraphDSL.create() {
-    implicit b =>
-      import GraphDSL.Implicits._
-      val stringToMetadata = b.add(Flow[String].map(f => new PostMetadata(title = "hi", created = 2l, slug = "uh" )))
-      val stringToPost = b.add(Flow[String].map(f => new Post("bro")))
-
-      val slugBroadcast = b.add(Broadcast[String](2))
-      val zipMetadataPost = b.add(Zip[PostMetadata,Post])
-
-      slugBroadcast ~> stringToMetadata ~> zipMetadataPost.in0
-      slugBroadcast ~> stringToPost~> zipMetadataPost.in1
-
-      FlowShape(slugBroadcast.in,zipMetadataPost.out)
-  })
 
   /**
     * from a slug, read metadata
+    *
     * @return
     */
   def slugToMetadata()  = Flow[String].map(f => scala.io.Source.fromFile(repodir + "/" + f + "/metadata.json").mkString.parseJson.convertTo[PostMetadata].copy(slug=f))

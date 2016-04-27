@@ -6,15 +6,7 @@ import akka.actor._
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server._
-import akka.stream.ActorMaterializer
-import akka.util.Timeout
-import akka.actor.{ActorSystem, Actor, Props}
-import akka.pattern.ask
-import akka.stream.ActorMaterializer
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.Directives._
+import akka.actor._
 import akka.http.scaladsl.server.{RequestContext, RouteResult}
 import data.{PostJsonSupport, PostsRepository}
 import scala.concurrent.{Promise, Future, ExecutionContextExecutor}
@@ -22,7 +14,7 @@ import akka.http.scaladsl.model.{StatusCodes, HttpResponse}
 import akka.util.Timeout
 import com.typesafe.config.Config
 import model.Posts._
-import model.PostsHandler
+import model.{Posts, PostsHandler}
 import model.PostsHandler.{PostNotFound, BlogError, GetPostBySlug}
 import spray.json.DefaultJsonProtocol
 import akka.actor.{ActorSystem, Actor, Props}
@@ -46,6 +38,7 @@ import controller.BlogController
 trait Route extends PostJsonSupport{
    val system = ActorSystem("Actor")
   implicit val timeout = Timeout(5 seconds)
+
   implicit def executor: ExecutionContextExecutor
   implicit val materializer: ActorMaterializer
   implicit val cfg: Config
@@ -55,7 +48,7 @@ trait Route extends PostJsonSupport{
 
   lazy val blogController = new BlogController
   val route = {
-    path("posts" / "by-slug" / Segment ) { slug =>
+    path("posts" / "by-slug" / Segment) { slug =>
       get {
 
         complete {
@@ -68,12 +61,21 @@ trait Route extends PostJsonSupport{
 
           }
         }
-
-
-
-
       }
+    } ~
+      path("posts") {
+        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? true, 'sort.as[String] ? "desc" ) { (limit, offset, order, compact,sort) =>
+          complete {
+            blogController.getPosts(limit,offset,compact,orderStrToFunc(order)).map[ToResponseMarshallable] {
+              case f => if (sort.equals("desc"))   f.reverse else f
+            }
+          }
+        }
+      }
+  }
 
-    }
+  def orderStrToFunc(order: String): (PostMetadata,PostMetadata) => Boolean = order match {
+    case "bydate" => Posts.orderByDate
+    case _ => Posts.orderByDate
   }
 }

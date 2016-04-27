@@ -18,23 +18,6 @@ object PostsHandler {
 
   case class PostNotFound() extends BlogError
 
-  def props(ctx: RequestContext)(implicit config: Config, materializer :ActorMaterializer, ec: ExecutionContext) : Props = Props(new PostsHandler(ctx))
-}
-
-
-/**
-  * Created by sebastian on 27/04/16.
-  */
-class PostsHandler(ctx: RequestContext) extends Actor with ActorLogging {
-  import model.PostsHandler._
-  import model.Posts._
-  override def receive: Receive = {
-    case GetPostBySlug(slug) =>
-      ctx.complete(HttpResponse(StatusCodes.NotAcceptable))
-    case _ =>
-      ctx.complete(HttpResponse(StatusCodes.NotAcceptable))
-
-
-  }
 
 }
+

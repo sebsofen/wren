@@ -17,6 +17,11 @@ case class PostMetadata(title:String, created: Long, tags: Seq[String] = Seq(), 
 case class PostAsm(metadata: PostMetadata,post: Post)
 
 
+  def orderByDate(m1 : PostMetadata, m2: PostMetadata) = m1.created < m2.created
+
+
+  def filterGetAll(m : PostAsm) = true
+
 }
 
 
