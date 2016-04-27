@@ -23,7 +23,7 @@ class PostsHandler extends Actor with ActorLogging {
   import model.Posts._
   override def receive: Receive = {
     case GetPostBySlug(slug) =>
-      sender ! Future.successful(PostAsm(PostMetadata("hi", 123, slug = slug),Post("hi")))
+      sender ! Future.successful(Some(PostAsm(PostMetadata("hi", 123, slug = slug),Post("hi"))))
   }
 
 }

@@ -59,8 +59,9 @@ trait Route extends PostJsonSupport{
     path("posts" / "by-slug" / Segment ) { slug =>
       get {
         complete{
-          Future.successful(Some(PostAsm(PostMetadata("hi", 123, slug = slug),Post("hi")))).map[ToResponseMarshallable] {
-            case Some(bla) => bla
+          //Future.successful(Some(PostAsm(PostMetadata("hi", 123, slug = slug),Post("hi")))).map[ToResponseMarshallable] {
+          (postsHandler ? GetPostBySlug(slug)).map[ToResponseMarshallable] {
+            case Some(bla : PostAsm) => bla
           }
 
         }
