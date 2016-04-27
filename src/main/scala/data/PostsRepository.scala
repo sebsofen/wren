@@ -1,9 +1,10 @@
-import akka.stream.{ActorMaterializer, FlowShape}
-import akka.stream.javadsl.Unzip
+package data
+
 import akka.stream.scaladsl._
-import akka.util.ByteString
+import akka.stream.{ActorMaterializer, FlowShape}
 import com.typesafe.config.Config
 import model.Posts._
+import spray.json._
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -11,8 +12,10 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Created by sebastian on 11/04/16.
   */
-class PostsRepository(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) {
-  def getPostBySlug(slug: String) = Source.single(slug).via(bytestreamflow).mapAsync(1){f => Future.successful(new PostAsm(f._1,f._2))}.runWith(Sink.head)
+class PostsRepository(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends PostJsonSupport{
+  val repodir = config.getString("postsfilerepository.postsdir")
+
+  def getPostBySlug(slug: String) = Source.single(slug).via(slugToMetadata).via(assemblePostFromMetadata).map(f => Right(f)).runWith(Sink.head)
 
 
 
@@ -33,6 +36,13 @@ class PostsRepository(implicit config: Config,  materializer :ActorMaterializer,
       FlowShape(slugBroadcast.in,zipMetadataPost.out)
   })
 
+  /**
+    * from a slug, read metadata
+    * @return
+    */
+  def slugToMetadata()  = Flow[String].map(f => scala.io.Source.fromFile(repodir + "/" + f + "/metadata.json").mkString.parseJson.convertTo[PostMetadata].copy(slug=f))
+
+  def assemblePostFromMetadata() = Flow[PostMetadata].map(f => PostAsm(f,Post(scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString)))
 
 
 }

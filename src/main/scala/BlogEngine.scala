@@ -13,6 +13,8 @@ import akka.stream.scaladsl.{Flow, Sink, Source}
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import java.io.IOException
+import data.PostsRepository
+
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.math._
 import spray.json.DefaultJsonProtocol
@@ -35,7 +37,10 @@ object BlogEngine extends App with rest.Route {
 
   override val logger = Logging(system, getClass)
 
-  implicit val postsRepository = new PostsRepository
+  override implicit val postRepository = new PostsRepository()
+
+
+
 
 
   Http().bindAndHandle(route, config.getString("http.interface"), config.getInt("http.port"))
