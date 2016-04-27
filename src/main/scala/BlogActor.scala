@@ -3,6 +3,7 @@ import akka.actor.Actor.Receive
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.typesafe.config.Config
+import akka.pattern.ask
 
 import scala.concurrent.ExecutionContext
 

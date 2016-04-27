@@ -23,9 +23,9 @@ import spray.json.DefaultJsonProtocol
 /**
   * Created by sebastian on 10/03/16.
   */
-object BlogEngine extends App with Protocol {
+object BlogEngine extends App with rest.Route {
 
-  override implicit val system = ActorSystem()
+  override implicit val system = ActorSystem("blog")
   override implicit val executor = system.dispatcher
   override implicit val materializer = ActorMaterializer()
   val config = ConfigFactory.load()
@@ -38,7 +38,7 @@ object BlogEngine extends App with Protocol {
   implicit val postsRepository = new PostsRepository
 
 
-  Http().bindAndHandle(routes, config.getString("http.interface"), config.getInt("http.port"))
+  Http().bindAndHandle(route, config.getString("http.interface"), config.getInt("http.port"))
 
 
 

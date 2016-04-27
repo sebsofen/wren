@@ -3,7 +3,7 @@ import akka.stream.javadsl.Unzip
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.typesafe.config.Config
-
+import model.Posts._
 import scala.concurrent.{ExecutionContext, Future}
 
 
