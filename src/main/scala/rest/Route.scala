@@ -7,12 +7,14 @@ import akka.event.LoggingAdapter
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.actor._
-import akka.http.scaladsl.server.{RequestContext, RouteResult}
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.server._
 import data.{PostJsonSupport, PostsRepository}
 import scala.concurrent.{Promise, Future, ExecutionContextExecutor}
 import akka.http.scaladsl.model.{StatusCodes, HttpResponse}
 import akka.util.Timeout
-import com.typesafe.config.Config
+import com.typesafe.config.{ConfigFactory, Config}
 import model.Posts._
 import model.{Posts, PostsHandler}
 import model.PostsHandler.{PostNotFound, BlogError, GetPostBySlug}
@@ -22,7 +24,6 @@ import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{RequestContext, RouteResult}
 import akka.util.Timeout
 import akka.util.Timeout
 import scala.concurrent.duration._
@@ -35,7 +36,8 @@ import controller.BlogController
 /**
   * Created by sebastian on 27/04/16.
   */
-trait Route extends PostJsonSupport{
+trait Router extends PostJsonSupport with CorsSupport{
+
    val system = ActorSystem("Actor")
   implicit val timeout = Timeout(5 seconds)
 
@@ -47,31 +49,34 @@ trait Route extends PostJsonSupport{
   val logger: LoggingAdapter
 
   lazy val blogController = new BlogController
-  val route = {
-    path("posts" / "by-slug" / Segment) { slug =>
-      get {
+  val route = corsHandler{
+      path("posts" / "by-slug" / Segment) { slug =>
+        get {
 
-        complete {
-          blogController.getPostBySlug(slug).map[ToResponseMarshallable] {
-            case Right(post) => post
-            case Left(err) =>
-              err match {
-                case PostNotFound() => HttpResponse(StatusCodes.NotFound)
-              }
-
-          }
-        }
-      }
-    } ~
-      path("posts") {
-        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? true, 'sort.as[String] ? "desc" ) { (limit, offset, order, compact,sort) =>
           complete {
-            blogController.getPosts(limit,offset,compact,orderStrToFunc(order)).map[ToResponseMarshallable] {
-              case f => if (sort.equals("desc"))   f.reverse else f
+            blogController.getPostBySlug(slug).map[ToResponseMarshallable] {
+              case Right(post) => post
+              case Left(err) =>
+                err match {
+                  case PostNotFound() => HttpResponse(StatusCodes.NotFound)
+                }
+
             }
           }
         }
-      }
+      } ~
+        path("posts") {
+          parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? true, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+            complete {
+              blogController.getPosts(limit, offset, compact, orderStrToFunc(order)).map[ToResponseMarshallable] {
+                case f => if (sort.equals("desc")) f.reverse else f
+
+
+              }
+            }
+          }
+        }
+
   }
 
   def orderStrToFunc(order: String): (PostMetadata,PostMetadata) => Boolean = order match {
@@ -79,3 +84,6 @@ trait Route extends PostJsonSupport{
     case _ => Posts.orderByDate
   }
 }
+
+
+

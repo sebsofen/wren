@@ -25,7 +25,7 @@ import spray.json.DefaultJsonProtocol
 /**
   * Created by sebastian on 10/03/16.
   */
-object BlogEngine extends App with rest.Route {
+object BlogEngine extends App with rest.Router {
 
   override implicit val system = ActorSystem("blog")
   override implicit val executor = system.dispatcher
