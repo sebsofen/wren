@@ -10,7 +10,7 @@ import akka.actor._
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server._
-import data.{PostJsonSupport, PostsRepository}
+import data.PostsRepository
 import scala.concurrent.{Promise, Future, ExecutionContextExecutor}
 import akka.http.scaladsl.model.{StatusCodes, HttpResponse}
 import akka.util.Timeout
@@ -76,6 +76,18 @@ trait Router extends PostJsonSupport with CorsSupport{
               }
             }
           }
+        } ~
+        path("blog" / "metainfo" ) {
+          parameters('start.as[Long] ? 0, 'stop.as[Long] ? Long.MaxValue) { (start,stop) =>
+            get {
+              complete {
+                blogController.getBlogMetaInfo(start,stop).map[ToResponseMarshallable] {
+                  case f => f
+                }
+              }
+            }
+          }
+
         }
 
   }
