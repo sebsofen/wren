@@ -22,10 +22,18 @@ class PostsRepository(implicit config: Config,  materializer :ActorMaterializer,
 
 
 
-  def getPosts(limit: Int, offset: Int, compact: Boolean, sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate, filterBy: PostAsm => Boolean = Posts.filterGetAll) =
+  def getPosts(
+                limit: Int,
+                offset: Int,
+                compact: Boolean,
+                sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate,
+                filterBy: PostAsm => Boolean = Posts.filterGetAll,
+                reverse: Boolean = false
+              ) =
     getPostMetadatasUnorderedSource()
       .grouped(Int.MaxValue)
-      .map(_.sortWith(sortBy).drop(offset))
+      .map(if (reverse) _.sortWith(sortBy) else _.sortWith(sortBy).reverse)
+      .map(_.drop(offset).take(limit))
       .map(f => f.map(f =>PostAsm(f,Post(scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString))))
       .runWith(Sink.head)
 

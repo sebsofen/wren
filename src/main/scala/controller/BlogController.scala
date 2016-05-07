@@ -15,10 +15,38 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 class BlogController(implicit pr: PostsRepository, config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) {
 
+  /**
+    * simply get post by slug
+    * @param slug
+    * @return
+    */
   def getPostBySlug(slug: String): Future[Either[BlogError,PostAsm]] = pr.getPostBySlug(slug)
-  def getPosts(limit: Int, offset: Int, compact: Boolean, sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate, filterBy: PostAsm => Boolean = Posts.filterGetAll) =
-    pr.getPosts(limit,offset,compact,sortBy,filterBy)
 
+  /**
+    * get all posts that satisfy the given parameters
+    * @param limit
+    * @param offset
+    * @param compact
+    * @param sortBy
+    * @param filterBy
+    * @return
+    */
+  def getPosts(
+                limit: Int,
+                offset: Int,
+                compact: Boolean,
+                sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate,
+                filterBy: PostAsm => Boolean = Posts.filterGetAll,
+                reverse: Boolean = false
+              ) =
+    pr.getPosts(limit,offset,compact,sortBy,filterBy, reverse)
+
+  /**
+    * read metadata from repository to generate Blog metainfo
+    * @param start
+    * @param stop
+    * @return
+    */
   def getBlogMetaInfo(start: Long, stop: Long) = {
     pr.getPostMetadatasUnorderedSource()
       .filter(p => p.created >= start && p.created <= stop)

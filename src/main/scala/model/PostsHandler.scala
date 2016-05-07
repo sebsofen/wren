@@ -14,8 +14,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object PostsHandler {
   case class GetPostBySlug(slug: String)
-  abstract class BlogError
 
+  abstract class BlogError
   case class PostNotFound() extends BlogError
 
 

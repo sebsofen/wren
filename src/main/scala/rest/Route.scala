@@ -69,10 +69,8 @@ trait Router extends PostJsonSupport with CorsSupport{
           parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? true, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
             complete {
               //TODO : move sort and limit to get post method!
-              blogController.getPosts(limit, offset, compact, orderStrToFunc(order)).map[ToResponseMarshallable] {
-                case f => if (sort.equals("desc")) f.reverse.take(limit) else f.take(limit)
-
-
+              blogController.getPosts(limit, offset, compact, orderStrToFunc(order), reverse = sort.equals("desc")).map[ToResponseMarshallable] {
+                case f => f
               }
             }
           }
