@@ -86,6 +86,11 @@ trait Router extends PostJsonSupport with CorsSupport{
             }
           }
 
+        } ~
+        pathPrefix("static") {
+          encodeResponse {
+            getFromDirectory(cfg.getString("postsfilerepository.postsdir"))
+          }
         }
 
   }
