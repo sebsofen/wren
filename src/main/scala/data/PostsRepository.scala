@@ -33,8 +33,14 @@ class PostsRepository(implicit config: Config,  materializer :ActorMaterializer,
     getPostMetadatasUnorderedSource()
       .grouped(Int.MaxValue)
       .map(if (reverse) _.sortWith(sortBy) else _.sortWith(sortBy).reverse)
+      .map(f => f.map(f =>PostAsm(f,Post({
+        if(compact)
+          scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString.split("\n\n")(0)
+        else
+          scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString
+      }))))
+      .map(f => f.filter(filterBy))
       .map(_.drop(offset).take(limit))
-      .map(f => f.map(f =>PostAsm(f,Post(scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString))))
       .runWith(Sink.head)
 
 

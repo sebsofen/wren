@@ -65,33 +65,44 @@ trait Router extends PostJsonSupport with CorsSupport{
           }
         }
       } ~
-        path("posts") {
-          parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? true, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+      path("posts" / "by-tags" / Segment) { tags =>
+        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+          get {
             complete {
-              //TODO : move sort and limit to get post method!
-              blogController.getPosts(limit, offset, compact, orderStrToFunc(order), reverse = sort.equals("desc")).map[ToResponseMarshallable] {
+              blogController.getPosts(limit, offset, compact, orderStrToFunc(order),filterBy = Posts.filterByTags(tags.split(",").toSet),reverse = sort.equals("desc")).map[ToResponseMarshallable] {
                 case f => f
               }
             }
           }
-        } ~
-        path("blog" / "metainfo" ) {
-          parameters('start.as[Long] ? 0, 'stop.as[Long] ? Long.MaxValue) { (start,stop) =>
-            get {
-              complete {
-                blogController.getBlogMetaInfo(start,stop).map[ToResponseMarshallable] {
-                  case f => f
-                }
+        }
+      } ~
+      path("posts") {
+        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+          complete {
+            //TODO : move sort and limit to get post method!
+            blogController.getPosts(limit, offset, compact, orderStrToFunc(order), reverse = sort.equals("desc")).map[ToResponseMarshallable] {
+              case f => f
+            }
+          }
+        }
+      } ~
+      path("blog" / "metainfo" ) {
+        parameters('start.as[Long] ? 0, 'stop.as[Long] ? Long.MaxValue) { (start,stop) =>
+          get {
+            complete {
+              blogController.getBlogMetaInfo(start,stop).map[ToResponseMarshallable] {
+                case f => f
               }
             }
           }
-
-        } ~
-        pathPrefix("static") {
-          encodeResponse {
-            getFromDirectory(cfg.getString("postsfilerepository.postsdir"))
-          }
         }
+
+      } ~
+      pathPrefix("static") {
+        encodeResponse {
+          getFromDirectory(cfg.getString("postsfilerepository.postsdir"))
+        }
+      }
 
   }
 

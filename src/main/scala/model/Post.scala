@@ -21,7 +21,19 @@ object Posts {
                            postCount : Int = 0)
 
   def orderByDate(m1 : PostMetadata, m2: PostMetadata) = m1.created < m2.created
+
+  /**
+    * generic function to allow all posts (default)
+    * @param m
+    * @return
+    */
   def filterGetAll(m : PostAsm) = true
+
+  /**
+    * filter posts by tags, allow all posts that match at least one tag in tags
+    * @param tags tags to be matched
+    */
+  def filterByTags(tags: Set[String]) : PostAsm => Boolean = m => m.metadata.tags.intersect(tags).nonEmpty
 
 }
 
