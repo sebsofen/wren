@@ -1,4 +1,4 @@
-  }
+  
 # wren
 Scala and Akka streams REST blog engine. 
 This Blogging engine follows the programming paradigm: *Programming over Convention over Configuration*, meaning
@@ -9,7 +9,9 @@ that it provides only basic functionality, thus giving maximum flexibility for b
 
 ## Get Posts as List:
 
-```http://localhost:9000/posts?compact=true&limit=2&offset=0&order=bydate&sort=asc```
+```
+http://localhost:9000/posts?compact=true&limit=2&offset=0&order=bydate&sort=asc
+```
 
 all parameters are optional and have default values...
 
@@ -26,7 +28,9 @@ all parameters are optional and have default values...
 
 ## Get Posts filtered by Tags:
 
-```http://localhost:9000/posts/by-tags/tag1,tag2?compact=true&limit=2&offset=0&order=bydate&sort=asc```
+```
+http://localhost:9000/posts/by-tags/tag1,tag2?compact=true&limit=2&offset=0&order=bydate&sort=asc
+```
 
 
 ## Example Json Response for Post:
