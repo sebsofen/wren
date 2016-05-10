@@ -45,6 +45,7 @@ http://localhost:9000/posts/by-tags/tag1,tag2?compact=true&limit=2&offset=0&orde
   },
   "post": {
     "content": "Bla bla bla"
+    }
 ```
 
 Of course, a list of posts will be a json ```[]``` array.
