@@ -15,8 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Created by sebastian on 11/04/16.
   */
-class PostsRepository(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends PostJsonSupport{
-  val repodir = config.getString("postsfilerepository.postsdir")
+class PostsRepository(repodir:String)(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends PostJsonSupport{
 
   def getPostBySlug(slug: String) = Source.single(slug).via(slugToMetadata).via(assemblePostFromMetadata).map(f => Right(f)).runWith(Sink.head)
 
@@ -29,9 +28,8 @@ class PostsRepository(implicit config: Config,  materializer :ActorMaterializer,
                 sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate,
                 filterBy: PostAsm => Boolean = Posts.filterGetAll,
                 reverse: Boolean = false
-              ) =
-    getPostMetadatasUnorderedSource()
-      .grouped(Int.MaxValue)
+              ) = getPostMetadatasUnorderedSource()
+                    .grouped(Int.MaxValue)
       .map(if (reverse) _.sortWith(sortBy) else _.sortWith(sortBy).reverse)
       .map(f => f.map(f =>PostAsm(f,Post({
         if(compact)

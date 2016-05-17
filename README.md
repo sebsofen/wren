@@ -4,13 +4,29 @@ Scala and Akka streams REST blog engine.
 This Blogging engine follows the programming paradigm: *Programming over Convention over Configuration*, meaning
 that it provides only basic functionality, thus giving maximum flexibility for bloggers that are willed to do some programming on their own.
 
+This Engine has multiple sub blogs support. Each Blog has to be specified in the ```application.conf``` : 
+
+```
+blogs = {
+  nerds {
+    posts = "/path/to/blg-nerds/"
+  }
+  trailmagic {
+    posts = "/path/to/blg2/"
+  }
+}
+```
+
+
 
 # API-Documentation:
+
+replace "nerds" with one of your blogs specified in ```application.conf```
 
 ## Get Posts as List:
 
 ```
-http://localhost:9000/posts?compact=true&limit=2&offset=0&order=bydate&sort=asc
+http://localhost:9000/v1/nerds/posts?compact=true&limit=2&offset=0&order=bydate&sort=asc
 ```
 
 all parameters are optional and have default values...
@@ -29,7 +45,7 @@ all parameters are optional and have default values...
 ## Get Posts filtered by Tags:
 
 ```
-http://localhost:9000/posts/by-tags/tag1,tag2?compact=true&limit=2&offset=0&order=bydate&sort=asc
+http://localhost:9000/v1/nerds/posts/by-tags/tag1,tag2?compact=true&limit=2&offset=0&order=bydate&sort=asc
 ```
 
 
@@ -52,3 +68,6 @@ Of course, a list of posts will be a json ```[]``` array.
 
 #Interface
 See  https://github.com/sebsofen/wren-gui for a gui using WREN
+
+# Future:
+Implementation of PostsRepository, CommentRepository, UserRepository. Each Blog can have own datasource for all three Repository types.

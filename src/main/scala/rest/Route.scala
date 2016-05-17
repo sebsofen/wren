@@ -10,6 +10,7 @@ import akka.actor._
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server._
+import application.BlogEngine
 import data.PostsRepository
 import scala.concurrent.{Promise, Future, ExecutionContextExecutor}
 import akka.http.scaladsl.model.{StatusCodes, HttpResponse}
@@ -29,7 +30,7 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import scala.util.Success
 
-import controller.BlogController
+import controller.PostsController
 
 
 
@@ -38,29 +39,32 @@ import controller.BlogController
   */
 trait Router extends PostJsonSupport with CorsSupport{
 
-   val system = ActorSystem("Actor")
+  val system = ActorSystem("Actor")
   implicit val timeout = Timeout(5 seconds)
 
   implicit def executor: ExecutionContextExecutor
   implicit val materializer: ActorMaterializer
   implicit val cfg: Config
-  implicit val postRepository : PostsRepository
-
   val logger: LoggingAdapter
 
-  lazy val blogController = new BlogController
+
 
   val route = corsHandler {
     pathPrefix("v1" / Segment) { blog : String =>
-      blogroute(blog)
+
+      BlogEngine.blogspecs.get(blog) match {
+        case Some(x) => blogroute(x)
+        case None => complete {HttpResponse(StatusCodes.NotFound)}
+      }
+
     }
   }
 
-  def blogroute(blog:String) = path("posts" / "by-slug" / Segment) { slug: String =>
+  def blogroute(blog:BlogEngine.BlogSpec) = path("posts" / "by-slug" / Segment) { slug: String =>
         get {
 
           complete {
-            blogController.getPostBySlug(slug).map[ToResponseMarshallable] {
+            blog.blogController.getPostBySlug(slug).map[ToResponseMarshallable] {
               case Right(post) => post
               case Left(err) =>
                 err match {
@@ -76,7 +80,7 @@ trait Router extends PostJsonSupport with CorsSupport{
         parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
           get {
             complete {
-              blogController.getPosts(limit, offset, compact, orderStrToFunc(order),filterBy = Posts.filterByTags(tags.split(",").toSet),reverse = sort.equals("desc")).map[ToResponseMarshallable] {
+              blog.blogController.getPosts(limit, offset, compact, orderStrToFunc(order),filterBy = Posts.filterByTags(tags.split(",").toSet),reverse = sort.equals("desc")).map[ToResponseMarshallable] {
                 case f => f
               }
             }
@@ -86,8 +90,7 @@ trait Router extends PostJsonSupport with CorsSupport{
       path("posts") {
         parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
           complete {
-            //TODO : move sort and limit to get post method!
-            blogController.getPosts(limit, offset, compact, orderStrToFunc(order), reverse = sort.equals("desc")).map[ToResponseMarshallable] {
+            blog.blogController.getPosts(limit, offset, compact, orderStrToFunc(order), reverse = sort.equals("desc")).map[ToResponseMarshallable] {
               case f => f
             }
           }
@@ -97,7 +100,7 @@ trait Router extends PostJsonSupport with CorsSupport{
         parameters('start.as[Long] ? 0, 'stop.as[Long] ? Long.MaxValue) { (start,stop) =>
           get {
             complete {
-              blogController.getBlogMetaInfo(start,stop).map[ToResponseMarshallable] {
+              blog.blogController.getBlogMetaInfo(start,stop).map[ToResponseMarshallable] {
                 case f => f
               }
             }

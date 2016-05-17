@@ -1,23 +1,13 @@
+package application
+
 import akka.actor.ActorSystem
-import akka.event.{LoggingAdapter, Logging}
+import akka.event.Logging
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.client.RequestBuilding
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
-import akka.http.scaladsl.model.{HttpResponse, HttpRequest}
-import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.{ActorMaterializer, Materializer}
-import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.typesafe.config.{ConfigValue, Config, ConfigFactory}
-import java.io.IOException
+import akka.stream.ActorMaterializer
+import com.typesafe.config.ConfigFactory
+import controller.PostsController
 import data.PostsRepository
 
-import scala.collection.immutable.HashSet
-import scala.concurrent.{ExecutionContextExecutor, Future}
-import scala.math._
-import spray.json.DefaultJsonProtocol
 import scala.collection.JavaConversions._
 
 
@@ -33,16 +23,19 @@ object BlogEngine extends App with rest.Router {
   val config = ConfigFactory.load()
   override implicit val cfg = config
   override val logger = Logging(system, getClass)
-  override implicit val postRepository = new PostsRepository()
-
-  case class BlogSpec(name: String, postdir: String)
 
 
-  val blogspecs = for{
+  case class BlogSpec(name: String, postdir: String, blogController: PostsController)
+
+
+  lazy val blogspecs = (for{
     entry <- config.getObject("blogs").entrySet
     blogname = entry.getKey
     postsrepo = entry.getValue.atKey(blogname).getString(blogname + ".posts")
-  } yield BlogSpec(blogname,postsrepo)
+    blogController = new PostsController(new PostsRepository(postsrepo))
+  } yield (blogname,BlogSpec(blogname,postsrepo,blogController))).toMap
+
+
 
   println(blogspecs)
 
@@ -60,4 +53,6 @@ object BlogEngine extends App with rest.Router {
   //  case f => f.get.foreach(println)
  //   }
  // Http().bindAndHandle(routes, config.getString("http.interface"), config.getInt("http.port"))
+
+
 }

@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Created by sebastian on 15/04/16.
   */
-class BlogController(implicit pr: PostsRepository, config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) {
+class PostsController(pr : PostsRepository)(implicit config: Config, materializer :ActorMaterializer, ec: ExecutionContext) {
 
   /**
     * simply get post by slug
@@ -38,8 +38,7 @@ class BlogController(implicit pr: PostsRepository, config: Config,  materializer
                 sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate,
                 filterBy: PostAsm => Boolean = Posts.filterGetAll,
                 reverse: Boolean = false
-              ) =
-    pr.getPosts(limit,offset,compact,sortBy,filterBy, reverse)
+              ) = pr.getPosts(limit,offset,compact,sortBy,filterBy, reverse)
 
   /**
     * read metadata from repository to generate Blog metainfo
@@ -47,8 +46,7 @@ class BlogController(implicit pr: PostsRepository, config: Config,  materializer
     * @param stop
     * @return
     */
-  def getBlogMetaInfo(start: Long, stop: Long) = {
-    pr.getPostMetadatasUnorderedSource()
+  def getBlogMetaInfo(start: Long, stop: Long) = pr.getPostMetadatasUnorderedSource()
       .filter(p => p.created >= start && p.created <= stop)
       .runWith(Sink.fold[BlogMetaInfo,PostMetadata](new BlogMetaInfo())(
         (blog, post) => {
@@ -60,5 +58,4 @@ class BlogController(implicit pr: PostsRepository, config: Config,  materializer
           )
         }
       ))
-  }
 }
