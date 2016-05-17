@@ -49,8 +49,14 @@ trait Router extends PostJsonSupport with CorsSupport{
   val logger: LoggingAdapter
 
   lazy val blogController = new BlogController
-  val route = corsHandler{
-      path("posts" / "by-slug" / Segment) { slug =>
+
+  val route = corsHandler {
+    pathPrefix("v1" / Segment) { blog : String =>
+      blogroute(blog)
+    }
+  }
+
+  def blogroute(blog:String) = path("posts" / "by-slug" / Segment) { slug: String =>
         get {
 
           complete {
@@ -65,7 +71,8 @@ trait Router extends PostJsonSupport with CorsSupport{
           }
         }
       } ~
-      path("posts" / "by-tags" / Segment) { tags =>
+      path("posts" / "by-tags" / Segment) { tags: String =>
+        println( blog + tags)
         parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
           get {
             complete {
@@ -104,7 +111,7 @@ trait Router extends PostJsonSupport with CorsSupport{
         }
       }
 
-  }
+
 
   def orderStrToFunc(order: String): (PostMetadata,PostMetadata) => Boolean = order match {
     case "bydate" => Posts.orderByDate
