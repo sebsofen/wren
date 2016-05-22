@@ -48,6 +48,11 @@ all parameters are optional and have default values...
 http://localhost:9000/v1/nerds/posts/by-tags/tag1,tag2?compact=true&limit=2&offset=0&order=bydate&sort=asc
 ```
 
+## Get Posts filtered by Search String:
+
+```
+http://localhost:9000/v1/nerds/posts/by-search/string to find in post?compact=true&limit=2&offset=0&order=bydate&sort=asc
+```
 
 ## Example Json Response for Post:
 
