@@ -35,6 +35,13 @@ object Posts {
     */
   def filterByTags(tags: Set[String]) : PostAsm => Boolean = m => m.metadata.tags.intersect(tags).nonEmpty
 
+  /**
+    * basci filter function, should be fuzzy in future
+    * @param searchStr
+    * @return
+    */
+  def filterBySearchStr(searchStr: String) : PostAsm => Boolean = m => (m.post.content.toLowerCase contains searchStr.toLowerCase ) || (m.metadata.title.toLowerCase contains searchStr.toLowerCase)
+
 }
 
 

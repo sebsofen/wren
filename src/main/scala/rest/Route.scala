@@ -87,6 +87,17 @@ trait Router extends PostJsonSupport with CorsSupport{
           }
         }
       } ~
+      path("posts" / "by-search" / Segment) { search: String =>
+        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+          get {
+            complete {
+              blog.blogController.getPosts(limit, offset, compact, orderStrToFunc(order),filterBy = Posts.filterBySearchStr(search),reverse = sort.equals("desc")).map[ToResponseMarshallable] {
+                case f => f
+              }
+            }
+          }
+        }
+      } ~
       path("posts") {
         parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
           complete {
