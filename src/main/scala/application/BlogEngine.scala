@@ -5,8 +5,8 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
-import controller.PostsController
-import data.PostsRepository
+import controller.{AuthorsController, PostsController}
+import data.{AuthorsRepository, PostsRepository}
 
 import scala.collection.JavaConversions._
 
@@ -25,15 +25,19 @@ object BlogEngine extends App with rest.Router {
   override val logger = Logging(system, getClass)
 
 
-  case class BlogSpec(name: String, postdir: String, blogController: PostsController)
+  case class BlogSpec(name: String, postdir: String, blogController: PostsController, authorsController: AuthorsController)
 
 
   lazy val blogspecs = (for{
     entry <- config.getObject("blogs").entrySet
     blogname = entry.getKey
     postsrepo = entry.getValue.atKey(blogname).getString(blogname + ".posts")
-    blogController = new PostsController(new PostsRepository(postsrepo))
-  } yield (blogname,BlogSpec(blogname,postsrepo,blogController))).toMap
+    postsController = new PostsController(new PostsRepository(postsrepo))
+
+    authorsrepo = entry.getValue.atKey(blogname).getString(blogname + ".authors")
+    authorsController = new AuthorsController(new AuthorsRepository(authorsrepo))
+
+  } yield (blogname,BlogSpec(blogname,postsrepo,postsController,authorsController))).toMap
 
 
 

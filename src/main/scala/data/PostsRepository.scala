@@ -6,7 +6,7 @@ import akka.stream.{ActorMaterializer, FlowShape}
 import com.typesafe.config.Config
 import model.Posts
 import model.Posts._
-import rest.PostJsonSupport
+import rest.BlogJsonSupport
 import spray.json._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,7 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Created by sebastian on 11/04/16.
   */
-class PostsRepository(repodir:String)(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends PostJsonSupport{
+class PostsRepository(repodir:String)(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends BlogJsonSupport{
 
   def getPostBySlug(slug: String) = Source.single(slug).via(slugToMetadata).via(assemblePostFromMetadata).map(f => Right(f)).runWith(Sink.head)
 
