@@ -31,7 +31,7 @@ class PostsRepository(repodir:String)(implicit config: Config,  materializer :Ac
               ) = getPostMetadatasUnorderedSource()
       .grouped(Int.MaxValue)
       //filter metadata
-      .map(f => f.filter(p => p.unlisted.getOrElse(false)))
+      .map(f => f.filter(p => !(p.unlisted.getOrElse(false))))
       .map(if (reverse) _.sortWith(sortBy) else _.sortWith(sortBy).reverse)
       .map(f => f.map(
         f =>PostAsm(f,Post({
