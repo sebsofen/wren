@@ -11,7 +11,7 @@ object Posts {
 
 
   case class Post(content: String)
-  case class PostMetadata(title:String, created: Long, tags: Set[String] = Set(), slug: String, author: Option[String])
+  case class PostMetadata(title:String, created: Long, tags: Set[String] = Set(), slug: String, author: Option[String], unlisted: Option[Boolean])
   case class PostAsm(metadata: PostMetadata,post: Post)
 
   case class BlogMetaInfo(

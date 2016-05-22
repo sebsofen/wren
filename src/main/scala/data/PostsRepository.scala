@@ -29,15 +29,22 @@ class PostsRepository(repodir:String)(implicit config: Config,  materializer :Ac
                 filterBy: PostAsm => Boolean = Posts.filterGetAll,
                 reverse: Boolean = false
               ) = getPostMetadatasUnorderedSource()
-                    .grouped(Int.MaxValue)
+      .grouped(Int.MaxValue)
+      //filter metadata
+      .map(f => f.filter(p => p.unlisted.getOrElse(false)))
       .map(if (reverse) _.sortWith(sortBy) else _.sortWith(sortBy).reverse)
-      .map(f => f.map(f =>PostAsm(f,Post({
-        if(compact)
-          scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString.split("\n\n")(0)
-        else
-          scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString
-      }))))
-      .map(f => f.filter(filterBy))
+      .map(f => f.map(
+        f =>PostAsm(f,Post({
+          if(compact)
+            scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString.split("\n\n")(0)
+          else
+            scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString
+        }))))
+      //filter complete post
+      .map(f => f
+        .filter(filterBy)
+      )
+
       .map(_.drop(offset).take(limit))
       .runWith(Sink.head)
 
