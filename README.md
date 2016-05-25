@@ -76,3 +76,7 @@ See  https://github.com/sebsofen/wren-gui for a gui using WREN
 
 # Future:
 Implementation of PostsRepository, CommentRepository, UserRepository. Each Blog can have own datasource for all three Repository types.
+
+# Planned Features:
+
+https://trello.com/b/44koPi3O
