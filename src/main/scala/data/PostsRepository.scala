@@ -17,14 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 class PostsRepository(repodir:String)(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends PostJsonSupport{
 
-  def getPostBySlug(slug: String) = Source.single(slug)
-    .via(slugToMetadata)
-    .via(assemblePostFromMetadata)
-    .map(replaceIncludes)
-    .map(f => Right(f))
-    .runWith(Sink.head)
-
-
+  def getPostBySlug(slug: String) = getPosts(1,0,false,filterBy = Posts.filterBySlug(slug)).map(_.head)
 
   def getPosts(
                 limit: Int,

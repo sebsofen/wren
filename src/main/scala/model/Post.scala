@@ -29,6 +29,9 @@ object Posts {
     */
   def filterGetAll(m : PostAsm) = true
 
+
+  def filterBySlug(slug:String) : PostAsm => Boolean =  m => m.metadata.slug == slug
+
   /**
     * filter posts by tags, allow all posts that match at least one tag in tags
     * @param tags tags to be matched

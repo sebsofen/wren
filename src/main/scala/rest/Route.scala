@@ -65,12 +65,7 @@ trait Router extends PostJsonSupport with CorsSupport{
 
           complete {
             blog.blogController.getPostBySlug(slug).map[ToResponseMarshallable] {
-              case Right(post) => post
-              case Left(err) =>
-                err match {
-                  case PostNotFound() => HttpResponse(StatusCodes.NotFound)
-                }
-
+              case post => post
             }
           }
         }

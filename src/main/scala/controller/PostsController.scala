@@ -20,7 +20,7 @@ class PostsController(pr : PostsRepository)(implicit config: Config, materialize
     * @param slug
     * @return
     */
-  def getPostBySlug(slug: String): Future[Either[BlogError,PostAsm]] = pr.getPostBySlug(slug)
+  def getPostBySlug(slug: String): Future[PostAsm] = pr.getPostBySlug(slug)
 
   /**
     * get all posts that satisfy the given parameters
