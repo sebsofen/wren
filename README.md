@@ -74,6 +74,17 @@ Of course, a list of posts will be a json ```[]``` array.
 #Interface
 See  https://github.com/sebsofen/wren-gui for a gui using WREN
 
+# Server side custom Markdown syntax:
+
+## include other post files:
+
+```
+[include file="path/to/file"]
+```
+
+A *~* in the file path will be replaced by the current post slug.
+
+
 # Future:
 Implementation of PostsRepository, CommentRepository, UserRepository. Each Blog can have own datasource for all three Repository types.
 
