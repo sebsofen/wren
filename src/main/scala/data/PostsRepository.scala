@@ -2,19 +2,16 @@ package data
 
 import java.io.File
 import akka.stream.scaladsl._
-import akka.stream.{ActorMaterializer, FlowShape}
+import akka.stream.{ActorMaterializer}
 import com.typesafe.config.Config
 import model.Posts
 import model.Posts._
 import rest.PostJsonSupport
 import spray.json._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext}
 
 
 
-/**
-  * Created by sebastian on 11/04/16.
-  */
 class PostsRepository(repodir:String)(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends PostJsonSupport{
 
   def getPostBySlug(slug: String) = getPosts(1,0,false,filterBy = Posts.filterBySlug(slug)).map(_.head)
@@ -77,14 +74,13 @@ class PostsRepository(repodir:String)(implicit config: Config,  materializer :Ac
     * @param slug
     * @return
     */
-  def replaceFileInclude(content: String, slug:String) : String = {
-      """\[include file="(.*)"\]""".r.replaceAllIn(content, m => {
+  def replaceFileInclude(content: String, slug:String) : String = """\[include[ ]+file[ ]*=[ ]*"(.*)"\]""".r.replaceAllIn(content, m => {
         val filename = m.group(1)
         replaceFileInclude(scala.io.Source.fromFile(repodir + "/" + replaceTildeWithSlugPath(filename,slug)).mkString, slug)
       })
 
 
-  }
+
 
   /**
     * find ~ character and replace with current post slug.

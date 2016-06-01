@@ -11,14 +11,16 @@ object Posts {
 
 
   case class Post(content: String)
-  case class PostMetadata(title:String, created: Long, tags: Set[String] = Set(), slug: String, author: Option[String])
+  case class PostMetadata(title:String, created: Long, tags: Set[String] = Set(), slug: String, author: Option[String], coverImage: Option[String])
   case class PostAsm(metadata: PostMetadata,post: Post)
 
   case class BlogMetaInfo(
                            tags: Set[String] = Set(),
                            start: Long = Long.MaxValue,
                            stop: Long = Long.MinValue,
-                           postCount : Int = 0)
+                           postCount : Int = 0
+
+                         )
 
   def orderByDate(m1 : PostMetadata, m2: PostMetadata) = m1.created < m2.created
 

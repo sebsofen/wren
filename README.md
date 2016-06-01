@@ -62,7 +62,8 @@ http://localhost:9000/v1/nerds/posts/by-search/string to find in post?compact=tr
     "title": "Fat Jar mit SBT Bauen",
     "created": 1462912152,
     "tags": ["sbt", "scala"],
-    "slug": "sbt_fatjar"
+    "slug": "sbt_fatjar",
+    "coverImage": "~/data/img.jpeg"
   },
   "post": {
     "content": "Bla bla bla"
