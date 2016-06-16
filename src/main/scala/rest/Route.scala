@@ -37,7 +37,7 @@ import controller.PostsController
 /**
   * Created by sebastian on 27/04/16.
   */
-trait Router extends PostJsonSupport with CorsSupport{
+trait Router extends PostMarshalSupport with CorsSupport{
 
   val system = ActorSystem("Actor")
   implicit val timeout = Timeout(5 seconds)
@@ -118,6 +118,9 @@ trait Router extends PostJsonSupport with CorsSupport{
         encodeResponse {
           getFromDirectory(blog.postdir)
         }
+      } ~
+      path("feed") {
+        complete(blog.blogController.getFeed())
       }
 
 

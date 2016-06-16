@@ -1,6 +1,7 @@
 package model
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.DateTime
 import spray.json.DefaultJsonProtocol
 
 /**
@@ -21,6 +22,10 @@ object Posts {
                            postCount : Int = 0
 
                          )
+
+  case class Feed(meta: FeedMeta,posts: Seq[PostAsm])
+
+  case class FeedMeta(blogname: String,updated:DateTime,blogurl:String,id:String, author:String, postsUrlPref: String)
 
   def orderByDate(m1 : PostMetadata, m2: PostMetadata) = m1.created < m2.created
 
@@ -47,6 +52,7 @@ object Posts {
     */
   def filterBySearchStr(searchStr: String) : PostAsm => Boolean = m => (m.post.content.toLowerCase contains searchStr.toLowerCase ) || (m.metadata.title.toLowerCase contains searchStr.toLowerCase)
 
+  def emptyPost = PostAsm(PostMetadata("d",1,Set.empty[String],"hi",None,None),Post("hi"))
 }
 
 

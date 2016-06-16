@@ -32,7 +32,7 @@ object BlogEngine extends App with rest.Router {
     entry <- config.getObject("blogs").entrySet
     blogname = entry.getKey
     postsrepo = entry.getValue.atKey(blogname).getString(blogname + ".posts")
-    blogController = new PostsController(new PostsRepository(postsrepo))
+    blogController = new PostsController(new PostsRepository(blogname,postsrepo))
   } yield (blogname,BlogSpec(blogname,postsrepo,blogController))).toMap
 
 

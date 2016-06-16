@@ -22,6 +22,8 @@ class PostsController(pr : PostsRepository)(implicit config: Config, materialize
     */
   def getPostBySlug(slug: String): Future[PostAsm] = pr.getPostBySlug(slug)
 
+  def getFeed() : Future[Feed] = pr.getFeed()
+
   /**
     * get all posts that satisfy the given parameters
     * @param limit

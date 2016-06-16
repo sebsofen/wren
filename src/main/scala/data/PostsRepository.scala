@@ -1,18 +1,23 @@
 package data
 
 import java.io.File
+
+import akka.http.scaladsl.model.DateTime
 import akka.stream.scaladsl._
-import akka.stream.{ActorMaterializer}
+import akka.stream.ActorMaterializer
 import com.typesafe.config.Config
 import model.Posts
 import model.Posts._
-import rest.PostJsonSupport
+import rest.PostMarshalSupport
 import spray.json._
-import scala.concurrent.{ExecutionContext}
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.io.Codec
 
 
 
-class PostsRepository(repodir:String)(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends PostJsonSupport{
+class PostsRepository(blogname:String, repodir:String)(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends PostMarshalSupport{
+  implicit val codec = Codec("UTF-8")
 
   def getPostBySlug(slug: String) = getPosts(1,0,false,filterBy = Posts.filterBySlug(slug)).map(_.head)
 
@@ -74,20 +79,37 @@ class PostsRepository(repodir:String)(implicit config: Config,  materializer :Ac
     * @param slug
     * @return
     */
-  def replaceFileInclude(content: String, slug:String) : String = """\[include[ ]+file[ ]*=[ ]*"(.*)"\]""".r.replaceAllIn(content, m => {
-        val filename = m.group(1)
+  def replaceFileInclude(content: String, slug:String) : String = "include file=\\\"(.*)\\\"".r.replaceAllIn(content, m => {
+  //def replaceFileInclude(content: String, slug:String) : String = """"(.*)"""".r.replaceAllIn(content, m => {
+    val filename = m.group(1)
         replaceFileInclude(scala.io.Source.fromFile(repodir + "/" + replaceTildeWithSlugPath(filename,slug)).mkString, slug)
+        //content
       })
 
 
+  def getFeed() : Future[Feed] = {
+    getPosts(10,0,true,Posts.orderByDate,Posts.filterGetAll,false)
+      .flatMap(psts => Future(Feed(FeedMeta(
+        blogname = blogname,
+        updated = DateTime(psts.head.metadata.created),
+        blogurl = config.getString("blogs." + blogname + ".blogurl" ),
+        id = "id",
+        author = "author",
+        postsUrlPref = config.getString("blogs." + blogname + ".blogurl" )
+      ),psts)))
+  }
 
 
   /**
     * find ~ character and replace with current post slug.
+ *
     * @param content
     * @param slug
     * @return
     */
   def replaceTildeWithSlugPath(content: String, slug:String) = """~""".r.replaceFirstIn(content,slug)
+
+
+
 
 }
