@@ -64,6 +64,18 @@ http://localhost:9000/v1/nerds/posts/filter/date:0,90000/tags:matlab,holiday?com
 
 Simply add filters to the query: ```/filter-name:param,list```
 
+
+| filter  | params | description |
+| ------------- | ------------- | ------------ |
+| date  | start,stop  | return all posts between start and stop timestamp |
+| tags  | tag1,tag2 | return all posts that have at least one of the given tags |
+
+TODO:
+- filter by author
+- filter by text (fuzzy)
+
+
+
 ## Get Atom Feed:
 
 Simple rss feed: 
