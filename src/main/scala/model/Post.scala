@@ -27,7 +27,7 @@ object Posts {
 
   case class FeedMeta(blogname: String,updated:DateTime,blogurl:String,id:String, author:String, postsUrlPref: String)
 
-  def orderByDate(m1 : PostMetadata, m2: PostMetadata) = m1.created < m2.created
+  def orderByDate : (PostMetadata,PostMetadata) => Boolean = (m1,m2) => m1.created < m2.created
 
   /**
     * generic function to allow all posts (default)
@@ -36,6 +36,7 @@ object Posts {
     */
   def filterGetAll(m : PostAsm) = true
 
+  def filterGetAllFunc : PostAsm => Boolean = m => true
 
   def filterBySlug(slug:String) : PostAsm => Boolean =  m => m.metadata.slug == slug
 
@@ -44,6 +45,9 @@ object Posts {
     * @param tags tags to be matched
     */
   def filterByTags(tags: Set[String]) : PostAsm => Boolean = m => m.metadata.tags.intersect(tags).nonEmpty
+
+  def filterByDate(start: Long, stop:Long) : PostAsm => Boolean = m => m.metadata.created >= start && m.metadata.created <=  stop
+
 
   /**
     * basci filter function, should be fuzzy in future

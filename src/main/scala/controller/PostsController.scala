@@ -37,8 +37,17 @@ class PostsController(pr : PostsRepository)(implicit config: Config, materialize
                 limit: Int,
                 offset: Int,
                 compact: Boolean,
+                sortBy: (PostMetadata,PostMetadata) => Boolean,
+                filterBy: PostAsm => Boolean,
+                reverse: Boolean
+              ) = pr.getPosts(limit,offset,compact,sortBy,filterBy, reverse)
+
+  def getPosts(
+                limit: Int,
+                offset: Int,
+                compact: Boolean,
                 sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate,
-                filterBy: PostAsm => Boolean = Posts.filterGetAll,
+                filterBy: List[PostAsm => Boolean] = List(Posts.filterGetAll),
                 reverse: Boolean = false
               ) = pr.getPosts(limit,offset,compact,sortBy,filterBy, reverse)
 

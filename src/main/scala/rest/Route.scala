@@ -82,6 +82,30 @@ trait Router extends PostMarshalSupport with CorsSupport{
           }
         }
       } ~
+      path("posts" / "filter" / Segments) {filters: List[String] =>
+        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+          get {
+            complete {
+              val filterfuncs = for {
+                filter <- filters
+                filtersplitted = filter.split(":")
+                fltrfunc = filtersplitted.head match {
+                  case "tags" =>
+                    Posts.filterByTags(filtersplitted.last.split(",").toSet)
+                  case "date" =>
+                    val splitted = filtersplitted.last.split(",").map(_.toLong)
+                    Posts.filterByDate(splitted(0),splitted(1))
+                  case _ => Posts.filterGetAllFunc
+                }
+              } yield (fltrfunc)
+
+              blog.blogController.getPosts(limit, offset, compact, orderStrToFunc(order), filterBy = filterfuncs, reverse = sort.equals("desc")).map[ToResponseMarshallable] {
+                case f => f
+              }
+            }
+          }
+        }
+      } ~
       path("posts" / "by-search" / Segment) { search: String =>
         parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
           get {
@@ -96,7 +120,7 @@ trait Router extends PostMarshalSupport with CorsSupport{
       path("posts") {
         parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
           complete {
-            blog.blogController.getPosts(limit, offset, compact, orderStrToFunc(order), reverse = sort.equals("desc")).map[ToResponseMarshallable] {
+            blog.blogController.getPosts(limit, offset, compact, filterBy = Posts.filterGetAllFunc, sortBy = orderStrToFunc(order), reverse = sort.equals("desc")).map[ToResponseMarshallable] {
               case f => f
             }
           }

@@ -19,30 +19,42 @@ import scala.io.Codec
 class PostsRepository(blogname:String, repodir:String)(implicit config: Config,  materializer :ActorMaterializer, ec: ExecutionContext) extends PostMarshalSupport{
   implicit val codec = Codec("UTF-8")
 
-  def getPostBySlug(slug: String) = getPosts(1,0,false,filterBy = Posts.filterBySlug(slug)).map(_.head)
+  def getPostBySlug(slug: String) = getPosts(1,0,false,filterBy = Posts.filterBySlug(slug),sortBy = Posts.orderByDate, reverse = false).map(_.head)
 
   def getPosts(
                 limit: Int,
                 offset: Int,
                 compact: Boolean,
-                sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate,
-                filterBy: PostAsm => Boolean = Posts.filterGetAll,
-                reverse: Boolean = false
-              ) =
-    getPostMetadatasUnorderedSource()
-    .grouped(Int.MaxValue)
-    .map(if (reverse) _.sortWith(sortBy) else _.sortWith(sortBy).reverse)
-    .map(f => f.map(f =>PostAsm(f,
-      Post(
-        if(compact) scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString.split("\n\n")(0)
-        else scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString
-      ))).map(replaceIncludes)
-    )
+                sortBy: (PostMetadata,PostMetadata) => Boolean,
+                filterBy: PostAsm => Boolean,
+                reverse: Boolean
+              ) :  Future[Seq[Posts.PostAsm]] = getPosts(limit,offset,compact,sortBy,List(filterBy),reverse)
 
-    .map(f => f.filter(filterBy))
-    .map(_.drop(offset).take(limit))
-    .runWith(Sink.head)
+  def getPosts(
+                limit: Int,
+                offset: Int,
+                compact: Boolean,
+                sortBy: (PostMetadata,PostMetadata) => Boolean,
+                filterBy: List[PostAsm => Boolean],
+                reverse: Boolean
+              ) :  Future[Seq[Posts.PostAsm]] =
+                    getPostMetadatasUnorderedSource()
+                      .grouped(Int.MaxValue)
+                      .map(if (reverse) _.sortWith(sortBy) else _.sortWith(sortBy).reverse)
+                      .map(f => f.map(f =>PostAsm(f,
+                        Post(
+                          if(compact) scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString.split("\n\n")(0)
+                          else scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString
+                        ))).map(replaceIncludes)
+                      ).map(f => f.filter(p => filterList(p,filterBy)))
+                      .map(_.drop(offset).take(limit))
+                      .runWith(Sink.head)
 
+
+  def filterList(post:PostAsm,filterList:List[PostAsm => Boolean]) : Boolean = {
+    filterList.foreach(f => if(f(post) == false) return false)
+    true
+  }
 
   /**
     * source for posts metadata
@@ -87,11 +99,15 @@ class PostsRepository(blogname:String, repodir:String)(implicit config: Config, 
       })
 
 
+  /**
+    * generate feed
+    * @return
+    */
   def getFeed() : Future[Feed] = {
-    getPosts(10,0,true,Posts.orderByDate,Posts.filterGetAll,false)
+    getPosts(10,0,true,Posts.orderByDate,Posts.filterGetAllFunc,false)
       .flatMap(psts => Future(Feed(FeedMeta(
         blogname = blogname,
-        updated = DateTime(psts.head.metadata.created),
+        updated = DateTime(psts.head.metadata.created * 100l),
         blogurl = config.getString("blogs." + blogname + ".blogurl" ),
         id = "id",
         author = "author",

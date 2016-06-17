@@ -38,7 +38,7 @@ trait PostMarshalSupport extends SprayJsonSupport with ScalaXmlSupport with Defa
       <feed xmlns="http://www.w3.org/2005/Atom">
       <updated>{feed.meta.updated.toIsoDateTimeString()}</updated>
       <title>{feed.meta.blogname}</title>
-      <link href="{feed.meta.blogurl}"/>
+      <link href={feed.meta.blogurl}/>
         <author>
         <name>{feed.meta.author}</name>
         </author>
@@ -54,7 +54,7 @@ trait PostMarshalSupport extends SprayJsonSupport with ScalaXmlSupport with Defa
       <title>{post.metadata.title}</title>
       <link href={feed.meta.postsUrlPref + "/" +post.metadata.slug} />
       <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
-      <updated>{DateTime(post.metadata.created ).toIsoDateTimeString() }</updated>
+      <updated>{DateTime(post.metadata.created * 100l).toIsoDateTimeString() }</updated>
       <summary>{post.post.content}</summary>
     </entry>
 
