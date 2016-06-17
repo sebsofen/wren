@@ -53,6 +53,25 @@ http://localhost:9000/v1/nerds/posts/by-tags/tag1,tag2?compact=true&limit=2&offs
 ```
 http://localhost:9000/v1/nerds/posts/by-search/string to find in post?compact=true&limit=2&offset=0&order=bydate&sort=asc
 ```
+## Get Posts by multiple Filters:
+This is probably the only filter method you need:
+
+Example:
+
+```
+http://localhost:9000/v1/nerds/posts/filter/date:0,90000/tags:matlab,holiday?compact=true&limit=2&offset=0&order=bydate&sort=asc
+```
+
+Simply add filters to the query: ```/filter-name:param,list```
+
+## Get Atom Feed:
+
+Simple rss feed: 
+
+```
+http://localhost:9000/v1/nerds/feed
+```
+
 
 ## Example Json Response for Post:
 

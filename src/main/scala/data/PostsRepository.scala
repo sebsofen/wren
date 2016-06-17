@@ -91,7 +91,7 @@ class PostsRepository(blogname:String, repodir:String)(implicit config: Config, 
     * @param slug
     * @return
     */
-  def replaceFileInclude(content: String, slug:String) : String = "include file=\\\"(.*)\\\"".r.replaceAllIn(content, m => {
+  def replaceFileInclude(content: String, slug:String) : String = """\[include file=\"(.*)\"\]""".r.replaceAllIn(content, m => {
   //def replaceFileInclude(content: String, slug:String) : String = """"(.*)"""".r.replaceAllIn(content, m => {
     val filename = m.group(1)
         replaceFileInclude(scala.io.Source.fromFile(repodir + "/" + replaceTildeWithSlugPath(filename,slug)).mkString, slug)
