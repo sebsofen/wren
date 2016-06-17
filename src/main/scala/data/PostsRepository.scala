@@ -107,7 +107,7 @@ class PostsRepository(blogname:String, repodir:String)(implicit config: Config, 
     getPosts(10,0,true,Posts.orderByDate,Posts.filterGetAllFunc,false)
       .flatMap(psts => Future(Feed(FeedMeta(
         blogname = blogname,
-        updated = DateTime(psts.head.metadata.created * 100l),
+        updated = DateTime(psts.head.metadata.created * 1000l),
         blogurl = config.getString("blogs." + blogname + ".blogurl" ),
         id = "id",
         author = "author",

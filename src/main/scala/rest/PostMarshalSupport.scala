@@ -54,7 +54,7 @@ trait PostMarshalSupport extends SprayJsonSupport with ScalaXmlSupport with Defa
       <title>{post.metadata.title}</title>
       <link href={feed.meta.postsUrlPref + "/" +post.metadata.slug} />
       <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
-      <updated>{DateTime(post.metadata.created * 100l).toIsoDateTimeString() }</updated>
+      <updated>{DateTime(post.metadata.created * 1000l).toIsoDateTimeString() }</updated>
       <summary>{post.post.content}</summary>
     </entry>
 
