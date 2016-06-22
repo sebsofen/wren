@@ -4,6 +4,8 @@ Scala and Akka streams REST blog engine.
 This Blogging engine follows the programming paradigm: *Programming over Convention over Configuration*, meaning
 that it provides only basic functionality, thus giving maximum flexibility for bloggers that are willed to do some programming on their own.
 
+Live Demo: http://sandbox.sofen.de
+
 This Engine has multiple sub blogs support. Each Blog has to be specified in the ```application.conf``` : 
 
 ```
