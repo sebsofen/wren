@@ -73,7 +73,7 @@ Simply add filters to the query: ```/filter-name:param,list```
 TODO:
 - filter by author
 - filter by text (fuzzy)
-
+- filter by geo bounding box
 
 
 ## Get Atom Feed:

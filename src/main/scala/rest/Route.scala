@@ -145,7 +145,13 @@ trait Router extends PostMarshalSupport with CorsSupport{
       } ~
       path("feed") {
         complete(blog.blogController.getFeed())
-      }
+      } ~
+      pathPrefix("") {
+        encodeResponse {
+          getFromDirectory(blog.guiFiles)
+          //getFromFile()
+        }
+        }
 
 
 
