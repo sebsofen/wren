@@ -10,10 +10,13 @@ import model.Posts._
 import model.PostsHandler.{PostNotFound, BlogError}
 
 import scala.concurrent.{ExecutionContext, Future}
+
 /**
   * Created by sebastian on 15/04/16.
   */
-class PostsController(pr : PostsRepository)(implicit config: Config, materializer :ActorMaterializer, ec: ExecutionContext) {
+class PostsController(pr: PostsRepository)(implicit config: Config,
+                                           materializer: ActorMaterializer,
+                                           ec: ExecutionContext) {
 
   /**
     * simply get post by slug
@@ -22,7 +25,7 @@ class PostsController(pr : PostsRepository)(implicit config: Config, materialize
     */
   def getPostBySlug(slug: String): Future[PostAsm] = pr.getPostBySlug(slug)
 
-  def getFeed() : Future[Feed] = pr.getFeed()
+  def getFeed(): Future[Feed] = pr.getFeed()
 
   /**
     * get all posts that satisfy the given parameters
@@ -34,22 +37,22 @@ class PostsController(pr : PostsRepository)(implicit config: Config, materialize
     * @return
     */
   def getPosts(
-                limit: Int,
-                offset: Int,
-                compact: Boolean,
-                sortBy: (PostMetadata,PostMetadata) => Boolean,
-                filterBy: PostAsm => Boolean,
-                reverse: Boolean
-              ) = pr.getPosts(limit,offset,compact,sortBy,filterBy, reverse)
+      limit: Int,
+      offset: Int,
+      compact: Boolean,
+      sortBy: (PostMetadata, PostMetadata) => Boolean,
+      filterBy: PostAsm => Boolean,
+      reverse: Boolean
+  ) = pr.getPosts(limit, offset, compact, sortBy, filterBy, reverse)
 
   def getPosts(
-                limit: Int,
-                offset: Int,
-                compact: Boolean,
-                sortBy: (PostMetadata,PostMetadata) => Boolean = Posts.orderByDate,
-                filterBy: List[PostAsm => Boolean] = List(Posts.filterGetAll),
-                reverse: Boolean = false
-              ) = pr.getPosts(limit,offset,compact,sortBy,filterBy, reverse)
+      limit: Int,
+      offset: Int,
+      compact: Boolean,
+      sortBy: (PostMetadata, PostMetadata) => Boolean = Posts.orderByDate,
+      filterBy: List[PostAsm => Boolean] = List(Posts.filterGetAll),
+      reverse: Boolean = false
+  ) = pr.getPosts(limit, offset, compact, sortBy, filterBy, reverse)
 
   /**
     * read metadata from repository to generate Blog metainfo
@@ -57,16 +60,19 @@ class PostsController(pr : PostsRepository)(implicit config: Config, materialize
     * @param stop
     * @return
     */
-  def getBlogMetaInfo(start: Long, stop: Long) = pr.getPostMetadatasUnorderedSource()
+  def getBlogMetaInfo(start: Long, stop: Long) =
+    pr.getPostMetadatasUnorderedSource()
       .filter(p => p.created >= start && p.created <= stop)
-      .runWith(Sink.fold[BlogMetaInfo,PostMetadata](new BlogMetaInfo())(
-        (blog, post) => {
-          blog.copy(
-            tags = (blog.tags ++ post.tags),
-            postCount = blog.postCount + 1,
-            start = if (post.created < blog.start) post.created else blog.start,
-            stop = if (post.created > blog.stop) post.created else blog.stop
-          )
-        }
-      ))
+      .runWith(Sink.fold[BlogMetaInfo, PostMetadata](new BlogMetaInfo())(
+              (blog, post) => {
+            blog.copy(
+                tags = (blog.tags ++ post.tags),
+                postCount = blog.postCount + 1,
+                start =
+                  if (post.created < blog.start) post.created else blog.start,
+                stop =
+                  if (post.created > blog.stop) post.created else blog.stop
+            )
+          }
+          ))
 }

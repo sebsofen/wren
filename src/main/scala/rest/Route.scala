@@ -32,12 +32,10 @@ import scala.util.Success
 
 import controller.PostsController
 
-
-
 /**
   * Created by sebastian on 27/04/16.
   */
-trait Router extends PostMarshalSupport with CorsSupport{
+trait Router extends PostMarshalSupport with CorsSupport {
 
   val system = ActorSystem("Actor")
   implicit val timeout = Timeout(5 seconds)
@@ -47,94 +45,145 @@ trait Router extends PostMarshalSupport with CorsSupport{
   implicit val cfg: Config
   val logger: LoggingAdapter
 
-
-
   val route = corsHandler {
-    pathPrefix("v1" / Segment) { blog : String =>
-
+    pathPrefix("v1" / Segment) { blog: String =>
       BlogEngine.blogspecs.get(blog) match {
         case Some(x) => blogroute(x)
-        case None => complete {HttpResponse(StatusCodes.NotFound)}
+        case None => complete { HttpResponse(StatusCodes.NotFound) }
       }
 
     }
   }
 
-  def blogroute(blog:BlogEngine.BlogSpec) = path("posts" / "by-slug" / Segment) { slug: String =>
-        get {
+  def blogroute(blog: BlogEngine.BlogSpec) =
+    path("posts" / "by-slug" / Segment) { slug: String =>
+      get {
 
-          complete {
-            blog.blogController.getPostBySlug(slug).map[ToResponseMarshallable] {
-              case post => post
-            }
+        complete {
+          blog.blogController.getPostBySlug(slug).map[ToResponseMarshallable] {
+            case post => post
           }
         }
-      } ~
+      }
+    } ~
       path("posts" / "by-tags" / Segment) { tags: String =>
-        println( blog + tags)
-        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
-          get {
-            complete {
-              blog.blogController.getPosts(limit, offset, compact, orderStrToFunc(order),filterBy = Posts.filterByTags(tags.split(",").toSet),reverse = sort.equals("desc")).map[ToResponseMarshallable] {
-                case f => f
+        println(blog + tags)
+        parameters('limit.as[Int] ? 10,
+                   'offset.as[Int] ? 0,
+                   'order.as[String] ? "bydate",
+                   'compact.as[Boolean] ? false,
+                   'sort.as[String] ? "desc") {
+          (limit, offset, order, compact, sort) =>
+            get {
+              complete {
+                blog.blogController
+                  .getPosts(limit,
+                            offset,
+                            compact,
+                            orderStrToFunc(order),
+                            filterBy =
+                              Posts.filterByTags(tags.split(",").toSet),
+                            reverse = sort.equals("desc"))
+                  .map[ToResponseMarshallable] {
+                    case f => f
+                  }
               }
             }
-          }
         }
       } ~
-      path("posts" / "filter" / Segments) {filters: List[String] =>
-        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
-          get {
-            complete {
-              val filterfuncs = for {
-                filter <- filters
-                filtersplitted = filter.split(":")
-                fltrfunc = filtersplitted.head match {
-                  case "tags" =>
-                    Posts.filterByTags(filtersplitted.last.split(",").toSet)
-                  case "date" =>
-                    val splitted = filtersplitted.last.split(",").map(_.toLong)
-                    Posts.filterByDate(splitted(0),splitted(1))
-                  case _ => Posts.filterGetAllFunc
-                }
-              } yield (fltrfunc)
+      path("posts" / "filter" / Segments) { filters: List[String] =>
+        parameters('limit.as[Int] ? 10,
+                   'offset.as[Int] ? 0,
+                   'order.as[String] ? "bydate",
+                   'compact.as[Boolean] ? false,
+                   'sort.as[String] ? "desc") {
+          (limit, offset, order, compact, sort) =>
+            get {
+              complete {
+                val filterfuncs = for {
+                  filter <- filters
+                  filtersplitted = filter.split(":")
+                  fltrfunc = filtersplitted.head match {
+                    case "tags" =>
+                      Posts.filterByTags(filtersplitted.last.split(",").toSet)
+                    case "date" =>
+                      val splitted =
+                        filtersplitted.last.split(",").map(_.toLong)
+                      Posts.filterByDate(splitted(0), splitted(1))
+                    case _ => Posts.filterGetAllFunc
+                  }
+                } yield (fltrfunc)
 
-              blog.blogController.getPosts(limit, offset, compact, orderStrToFunc(order), filterBy = filterfuncs, reverse = sort.equals("desc")).map[ToResponseMarshallable] {
-                case f => f
+                blog.blogController
+                  .getPosts(limit,
+                            offset,
+                            compact,
+                            orderStrToFunc(order),
+                            filterBy = filterfuncs,
+                            reverse = sort.equals("desc"))
+                  .map[ToResponseMarshallable] {
+                    case f => f
+                  }
               }
             }
-          }
         }
       } ~
       path("posts" / "by-search" / Segment) { search: String =>
-        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
-          get {
-            complete {
-              blog.blogController.getPosts(limit, offset, compact, orderStrToFunc(order),filterBy = Posts.filterBySearchStr(search),reverse = sort.equals("desc")).map[ToResponseMarshallable] {
-                case f => f
+        parameters('limit.as[Int] ? 10,
+                   'offset.as[Int] ? 0,
+                   'order.as[String] ? "bydate",
+                   'compact.as[Boolean] ? false,
+                   'sort.as[String] ? "desc") {
+          (limit, offset, order, compact, sort) =>
+            get {
+              complete {
+                blog.blogController
+                  .getPosts(limit,
+                            offset,
+                            compact,
+                            orderStrToFunc(order),
+                            filterBy = Posts.filterBySearchStr(search),
+                            reverse = sort.equals("desc"))
+                  .map[ToResponseMarshallable] {
+                    case f => f
+                  }
               }
             }
-          }
         }
       } ~
       path("posts") {
-        parameters('limit.as[Int] ? 10, 'offset.as[Int] ? 0, 'order.as[String] ? "bydate", 'compact.as[Boolean] ? false, 'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
-          complete {
-            blog.blogController.getPosts(limit, offset, compact, filterBy = Posts.filterGetAllFunc, sortBy = orderStrToFunc(order), reverse = sort.equals("desc")).map[ToResponseMarshallable] {
-              case f => f
+        parameters('limit.as[Int] ? 10,
+                   'offset.as[Int] ? 0,
+                   'order.as[String] ? "bydate",
+                   'compact.as[Boolean] ? false,
+                   'sort.as[String] ? "desc") {
+          (limit, offset, order, compact, sort) =>
+            complete {
+              blog.blogController
+                .getPosts(limit,
+                          offset,
+                          compact,
+                          filterBy = Posts.filterGetAllFunc,
+                          sortBy = orderStrToFunc(order),
+                          reverse = sort.equals("desc"))
+                .map[ToResponseMarshallable] {
+                  case f => f
+                }
             }
-          }
         }
       } ~
-      path("blog" / "metainfo" ) {
-        parameters('start.as[Long] ? 0, 'stop.as[Long] ? Long.MaxValue) { (start,stop) =>
-          get {
-            complete {
-              blog.blogController.getBlogMetaInfo(start,stop).map[ToResponseMarshallable] {
-                case f => f
+      path("blog" / "metainfo") {
+        parameters('start.as[Long] ? 0, 'stop.as[Long] ? Long.MaxValue) {
+          (start, stop) =>
+            get {
+              complete {
+                blog.blogController
+                  .getBlogMetaInfo(start, stop)
+                  .map[ToResponseMarshallable] {
+                    case f => f
+                  }
               }
             }
-          }
         }
 
       } ~
@@ -151,15 +200,11 @@ trait Router extends PostMarshalSupport with CorsSupport{
           getFromDirectory(blog.guiFiles)
           //getFromFile()
         }
-        }
+      }
 
-
-
-  def orderStrToFunc(order: String): (PostMetadata,PostMetadata) => Boolean = order match {
-    case "bydate" => Posts.orderByDate
-    case _ => Posts.orderByDate
-  }
+  def orderStrToFunc(order: String): (PostMetadata, PostMetadata) => Boolean =
+    order match {
+      case "bydate" => Posts.orderByDate
+      case _ => Posts.orderByDate
+    }
 }
-
-
-

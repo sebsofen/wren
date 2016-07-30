@@ -10,8 +10,6 @@ import data.PostsRepository
 
 import scala.collection.JavaConversions._
 
-
-
 /**
   * Created by sebastian on 10/03/16.
   */
@@ -24,28 +22,25 @@ object BlogEngine extends App with rest.Router {
   override implicit val cfg = config
   override val logger = Logging(system, getClass)
 
+  case class BlogSpec(name: String,
+                      postdir: String,
+                      blogController: PostsController,
+                      guiFiles: String)
 
-  case class BlogSpec(name: String, postdir: String, blogController: PostsController, guiFiles: String)
-
-
-  lazy val blogspecs = (for{
+  lazy val blogspecs = (for {
     entry <- config.getObject("blogs").entrySet
     blogname = entry.getKey
     postsrepo = entry.getValue.atKey(blogname).getString(blogname + ".posts")
     guifiles = entry.getValue.atKey(blogname).getString(blogname + ".guifiles")
-    blogController = new PostsController(new PostsRepository(blogname,postsrepo))
-  } yield (blogname,BlogSpec(blogname,postsrepo,blogController,guifiles))).toMap
-
-
+    blogController = new PostsController(
+        new PostsRepository(blogname, postsrepo))
+  } yield
+    (blogname, BlogSpec(blogname, postsrepo, blogController, guifiles))).toMap
 
   println(blogspecs)
 
-
-
-  Http().bindAndHandle(route, config.getString("http.interface"), config.getInt("http.port"))
-
-
-
-
+  Http().bindAndHandle(route,
+                       config.getString("http.interface"),
+                       config.getInt("http.port"))
 
 }
