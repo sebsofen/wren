@@ -52,6 +52,17 @@ trait Router extends PostMarshalSupport with CorsSupport {
         case None => complete { HttpResponse(StatusCodes.NotFound) }
       }
 
+    } ~
+      pathPrefix("") {
+        encodeResponse {
+          val a = getFromDirectory(BlogEngine.blogspecs.head._2.guiFiles) // return first blog as default
+
+          a
+          //getFromFile()
+        }
+      } ~
+    pathPrefix("") {
+      getFromFile(BlogEngine.blogspecs.head._2.guiFiles + "/index.html")
     }
   }
 
@@ -72,23 +83,21 @@ trait Router extends PostMarshalSupport with CorsSupport {
                    'offset.as[Int] ? 0,
                    'order.as[String] ? "bydate",
                    'compact.as[Boolean] ? false,
-                   'sort.as[String] ? "desc") {
-          (limit, offset, order, compact, sort) =>
-            get {
-              complete {
-                blog.blogController
-                  .getPosts(limit,
-                            offset,
-                            compact,
-                            orderStrToFunc(order),
-                            filterBy =
-                              Posts.filterByTags(tags.split(",").toSet),
-                            reverse = sort.equals("desc"))
-                  .map[ToResponseMarshallable] {
-                    case f => f
-                  }
-              }
+                   'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+          get {
+            complete {
+              blog.blogController
+                .getPosts(limit,
+                          offset,
+                          compact,
+                          orderStrToFunc(order),
+                          filterBy = Posts.filterByTags(tags.split(",").toSet),
+                          reverse = sort.equals("desc"))
+                .map[ToResponseMarshallable] {
+                  case f => f
+                }
             }
+          }
         }
       } ~
       path("posts" / "filter" / Segments) { filters: List[String] =>
@@ -96,36 +105,34 @@ trait Router extends PostMarshalSupport with CorsSupport {
                    'offset.as[Int] ? 0,
                    'order.as[String] ? "bydate",
                    'compact.as[Boolean] ? false,
-                   'sort.as[String] ? "desc") {
-          (limit, offset, order, compact, sort) =>
-            get {
-              complete {
-                val filterfuncs = for {
-                  filter <- filters
-                  filtersplitted = filter.split(":")
-                  fltrfunc = filtersplitted.head match {
-                    case "tags" =>
-                      Posts.filterByTags(filtersplitted.last.split(",").toSet)
-                    case "date" =>
-                      val splitted =
-                        filtersplitted.last.split(",").map(_.toLong)
-                      Posts.filterByDate(splitted(0), splitted(1))
-                    case _ => Posts.filterGetAllFunc
-                  }
-                } yield (fltrfunc)
+                   'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+          get {
+            complete {
+              val filterfuncs = for {
+                filter <- filters
+                filtersplitted = filter.split(":")
+                fltrfunc = filtersplitted.head match {
+                  case "tags" =>
+                    Posts.filterByTags(filtersplitted.last.split(",").toSet)
+                  case "date" =>
+                    val splitted = filtersplitted.last.split(",").map(_.toLong)
+                    Posts.filterByDate(splitted(0), splitted(1))
+                  case _ => Posts.filterGetAllFunc
+                }
+              } yield (fltrfunc)
 
-                blog.blogController
-                  .getPosts(limit,
-                            offset,
-                            compact,
-                            orderStrToFunc(order),
-                            filterBy = filterfuncs,
-                            reverse = sort.equals("desc"))
-                  .map[ToResponseMarshallable] {
-                    case f => f
-                  }
-              }
+              blog.blogController
+                .getPosts(limit,
+                          offset,
+                          compact,
+                          orderStrToFunc(order),
+                          filterBy = filterfuncs,
+                          reverse = sort.equals("desc"))
+                .map[ToResponseMarshallable] {
+                  case f => f
+                }
             }
+          }
         }
       } ~
       path("posts" / "by-search" / Segment) { search: String =>
@@ -133,22 +140,21 @@ trait Router extends PostMarshalSupport with CorsSupport {
                    'offset.as[Int] ? 0,
                    'order.as[String] ? "bydate",
                    'compact.as[Boolean] ? false,
-                   'sort.as[String] ? "desc") {
-          (limit, offset, order, compact, sort) =>
-            get {
-              complete {
-                blog.blogController
-                  .getPosts(limit,
-                            offset,
-                            compact,
-                            orderStrToFunc(order),
-                            filterBy = Posts.filterBySearchStr(search),
-                            reverse = sort.equals("desc"))
-                  .map[ToResponseMarshallable] {
-                    case f => f
-                  }
-              }
+                   'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+          get {
+            complete {
+              blog.blogController
+                .getPosts(limit,
+                          offset,
+                          compact,
+                          orderStrToFunc(order),
+                          filterBy = Posts.filterBySearchStr(search),
+                          reverse = sort.equals("desc"))
+                .map[ToResponseMarshallable] {
+                  case f => f
+                }
             }
+          }
         }
       } ~
       path("posts") {
@@ -156,34 +162,30 @@ trait Router extends PostMarshalSupport with CorsSupport {
                    'offset.as[Int] ? 0,
                    'order.as[String] ? "bydate",
                    'compact.as[Boolean] ? false,
-                   'sort.as[String] ? "desc") {
-          (limit, offset, order, compact, sort) =>
-            complete {
-              blog.blogController
-                .getPosts(limit,
-                          offset,
-                          compact,
-                          filterBy = Posts.filterGetAllFunc,
-                          sortBy = orderStrToFunc(order),
-                          reverse = sort.equals("desc"))
-                .map[ToResponseMarshallable] {
-                  case f => f
-                }
-            }
+                   'sort.as[String] ? "desc") { (limit, offset, order, compact, sort) =>
+          complete {
+            blog.blogController
+              .getPosts(limit,
+                        offset,
+                        compact,
+                        filterBy = Posts.filterGetAllFunc,
+                        sortBy = orderStrToFunc(order),
+                        reverse = sort.equals("desc"))
+              .map[ToResponseMarshallable] {
+                case f => f
+              }
+          }
         }
       } ~
       path("blog" / "metainfo") {
-        parameters('start.as[Long] ? 0, 'stop.as[Long] ? Long.MaxValue) {
-          (start, stop) =>
-            get {
-              complete {
-                blog.blogController
-                  .getBlogMetaInfo(start, stop)
-                  .map[ToResponseMarshallable] {
-                    case f => f
-                  }
+        parameters('start.as[Long] ? 0, 'stop.as[Long] ? Long.MaxValue) { (start, stop) =>
+          get {
+            complete {
+              blog.blogController.getBlogMetaInfo(start, stop).map[ToResponseMarshallable] {
+                case f => f
               }
             }
+          }
         }
 
       } ~
