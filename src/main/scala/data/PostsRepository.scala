@@ -14,20 +14,15 @@ import spray.json._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Codec
 
-class PostsRepository(blogname: String, repodir: String)(
-    implicit config: Config,
-    materializer: ActorMaterializer,
-    ec: ExecutionContext)
-    extends PostMarshalSupport {
+class PostsRepository(blogname: String,
+                      repdir: String)(implicit config: Config, materializer: ActorMaterializer, ec: ExecutionContext)
+    extends PostMarshalSupport
+    with RepositoryTrait {
   implicit val codec = Codec("UTF-8")
+  override val repodir: String = repdir
 
   def getPostBySlug(slug: String) =
-    getPosts(1,
-             0,
-             false,
-             filterBy = Posts.filterBySlug(slug),
-             sortBy = Posts.orderByDate,
-             reverse = false).map(_.head)
+    getPosts(1, 0, false, filterBy = Posts.filterBySlug(slug), sortBy = Posts.orderByDate, reverse = false).map(_.head)
 
   def getPosts(
       limit: Int,
@@ -58,22 +53,16 @@ class PostsRepository(blogname: String, repodir: String)(
                         f,
                         Post(
                             if (compact)
-                              scala.io.Source
-                                .fromFile(repodir + "/" + f.slug + "/Post.md")
-                                .mkString
-                                .split("\n\n")(0)
+                              scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString.split("\n\n")(0)
                             else
-                              scala.io.Source
-                                .fromFile(repodir + "/" + f.slug + "/Post.md")
-                                .mkString
+                              scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString
                         )))
               .map(replaceIncludes))
       .map(f => f.filter(p => filterList(p, filterBy)))
       .map(_.drop(offset).take(limit))
       .runWith(Sink.head)
 
-  def filterList(post: PostAsm,
-                 filterList: List[PostAsm => Boolean]): Boolean = {
+  def filterList(post: PostAsm, filterList: List[PostAsm => Boolean]): Boolean = {
     filterList.foreach(f => if (f(post) == false) return false)
     true
   }
@@ -84,13 +73,10 @@ class PostsRepository(blogname: String, repodir: String)(
     * @return
     */
   def getPostMetadatasUnorderedSource() = {
-    val ignorefile = getWrenIgnore()
-      Source
-      .fromIterator(() =>
-            new File(repodir).listFiles.filter(_.isDirectory).toIterator)
+    Source
+      .fromIterator(() => new File(repodir).listFiles.filter(_.isDirectory).toIterator)
       .map(f => f.getName)
-      .filter(f =>
-            ignorefile.map(pat => f.matches(pat)).count(_ == true) == 0)
+      .filter(f => getWrenIgnore.map(pat => f.matches(pat)).count(_ == true) == 0)
       .via(slugToMetadata)
   }
 
@@ -107,24 +93,18 @@ class PostsRepository(blogname: String, repodir: String)(
             .mkString
             .parseJson
             .convertTo[PostMetadata]
-            .copy(slug = f))
+            .copy(slug = Some(f)))
 
   def assemblePostFromMetadata() =
-    Flow[PostMetadata].map(
-        f =>
-          PostAsm(f,
-                  Post(scala.io.Source
-                        .fromFile(repodir + "/" + f.slug + "/Post.md")
-                        .mkString)))
+    Flow[PostMetadata].map(f =>
+          PostAsm(f, Post(scala.io.Source.fromFile(repodir + "/" + f.getSlug + "/Post.md").mkString)))
 
   /**
     *
     * @return
     */
   def replaceIncludes: PostAsm => PostAsm = f => {
-    f.copy(
-        post = f.post.copy(
-            content = replaceFileInclude(f.post.content, f.metadata.slug)))
+    f.copy(post = f.post.copy(content = replaceFileInclude(f.post.content, f.metadata.getSlug)))
   }
 
   /**
@@ -138,11 +118,8 @@ class PostsRepository(blogname: String, repodir: String)(
     """\[include file=\"(.*)\"\]""".r.replaceAllIn(content, m => {
       //def replaceFileInclude(content: String, slug:String) : String = """"(.*)"""".r.replaceAllIn(content, m => {
       val filename = m.group(1)
-      replaceFileInclude(
-          scala.io.Source
-            .fromFile(repodir + "/" + replaceTildeWithSlugPath(filename, slug))
-            .mkString,
-          slug)
+      replaceFileInclude(scala.io.Source.fromFile(repodir + "/" + replaceTildeWithSlugPath(filename, slug)).mkString,
+                         slug)
       //content
     })
 
@@ -151,22 +128,18 @@ class PostsRepository(blogname: String, repodir: String)(
     * @return
     */
   def getFeed(): Future[Feed] = {
-    getPosts(10, 0, true, Posts.orderByDate, Posts.filterGetAllFunc, false)
-      .flatMap(
-          psts =>
-            Future(
-                Feed(
-                    FeedMeta(
-                        blogname = blogname,
-                        updated = DateTime(psts.head.metadata.created * 1000l),
-                        blogurl =
-                          config.getString("blogs." + blogname + ".blogurl"),
-                        id = "id",
-                        author = "author",
-                        postsUrlPref =
-                          config.getString("blogs." + blogname + ".blogurl")
-                    ),
-                    psts)))
+    getPosts(10, 0, true, Posts.orderByDate, Posts.filterGetAllFunc, false).flatMap(
+        psts =>
+          Future(
+              Feed(FeedMeta(
+                       blogname = blogname,
+                       updated = DateTime(psts.head.metadata.created * 1000l),
+                       blogurl = config.getString("blogs." + blogname + ".blogurl"),
+                       id = "id",
+                       author = "author",
+                       postsUrlPref = config.getString("blogs." + blogname + ".blogurl")
+                   ),
+                   psts)))
   }
 
   /**
@@ -179,10 +152,4 @@ class PostsRepository(blogname: String, repodir: String)(
   def replaceTildeWithSlugPath(content: String, slug: String) =
     """~""".r.replaceFirstIn(content, slug)
 
-  def getWrenIgnore() : Seq[String] =
-    try {
-      scala.io.Source.fromFile(repodir + "/" + ".wrenignore").getLines().toSeq
-    } catch {
-      case _ : Throwable => Seq()
-    }
 }

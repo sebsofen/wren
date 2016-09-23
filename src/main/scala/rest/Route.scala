@@ -35,7 +35,7 @@ import controller.PostsController
 /**
   * Created by sebastian on 27/04/16.
   */
-trait Router extends PostMarshalSupport with CorsSupport {
+trait Router extends PostMarshalSupport with AuthorMarshalSupport with CorsSupport {
 
   val system = ActorSystem("Actor")
   implicit val timeout = Timeout(5 seconds)
@@ -61,22 +61,27 @@ trait Router extends PostMarshalSupport with CorsSupport {
           //getFromFile()
         }
       } ~
-    pathPrefix("") {
-      getFromFile(BlogEngine.blogspecs.head._2.guiFiles + "/index.html")
-    }
+      pathPrefix("") {
+        getFromFile(BlogEngine.blogspecs.head._2.guiFiles + "/index.html")
+      }
   }
 
   def blogroute(blog: BlogEngine.BlogSpec) =
-    path("posts" / "by-slug" / Segment) { slug: String =>
+    path("authors" / "by-name" / Segment)   { name: String => //implement split by , for multiple authors requests!
       get {
-
         complete {
-          blog.blogController.getPostBySlug(slug).map[ToResponseMarshallable] {
-            case post => post
-          }
+          blog.authorsController.getAuthorByName(name.split(",")).map[ToResponseMarshallable] { case author => author }
         }
       }
+
     } ~
+      path("posts" / "by-slug" / Segment) { slug: String =>
+        get {
+          complete {
+            blog.blogController.getPostBySlug(slug).map[ToResponseMarshallable] { case post => post }
+          }
+        }
+      } ~
       path("posts" / "by-tags" / Segment) { tags: String =>
         println(blog + tags)
         parameters('limit.as[Int] ? 10,
@@ -119,7 +124,7 @@ trait Router extends PostMarshalSupport with CorsSupport {
                     Posts.filterByDate(splitted(0), splitted(1))
                   case _ => Posts.filterGetAllFunc
                 }
-              } yield (fltrfunc)
+              } yield fltrfunc
 
               blog.blogController
                 .getPosts(limit,

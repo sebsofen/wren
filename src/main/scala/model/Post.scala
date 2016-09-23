@@ -1,8 +1,6 @@
 package model
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.DateTime
-import spray.json.DefaultJsonProtocol
 
 /**
   * Created by sebastian on 11/04/16.
@@ -13,9 +11,11 @@ object Posts {
   case class PostMetadata(title: String,
                           created: Long,
                           tags: Set[String] = Set(),
-                          slug: String,
-                          author: Option[String],
-                          coverImage: Option[String])
+                          slug: Option[String],
+                          author: Option[Seq[String]],
+                          coverImage: Option[String]) {
+    def getSlug = slug.get
+  }
   case class PostAsm(metadata: PostMetadata, post: Post)
 
   case class BlogMetaInfo(
@@ -69,6 +69,6 @@ object Posts {
       (m.post.content.toLowerCase contains searchStr.toLowerCase) || (m.metadata.title.toLowerCase contains searchStr.toLowerCase)
 
   def emptyPost =
-    PostAsm(PostMetadata("d", 1, Set.empty[String], "hi", None, None),
+    PostAsm(PostMetadata("d", 1, Set.empty[String], Some("hi"), None, None),
             Post("hi"))
 }

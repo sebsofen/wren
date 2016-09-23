@@ -13,10 +13,7 @@ import scala.concurrent.Future
 /**
   * Created by sebastian on 27/04/16.
   */
-trait PostMarshalSupport
-    extends SprayJsonSupport
-    with ScalaXmlSupport
-    with DefaultJsonProtocol {
+trait PostMarshalSupport extends SprayJsonSupport with ScalaXmlSupport with DefaultJsonProtocol {
   implicit val postMetadataFormat = jsonFormat6(PostMetadata)
   implicit val postFormat = jsonFormat1(Post)
   implicit val postAsmFormat = jsonFormat2(PostAsm)
@@ -55,10 +52,8 @@ trait PostMarshalSupport
       <summary>{post.post.content}</summary>
     </entry>
 
-  val xmlFeedMarshaller: ToEntityMarshaller[Future[Feed]] =
-    Marshaller.combined(feedXml)
+  val xmlFeedMarshaller: ToEntityMarshaller[Future[Feed]] = Marshaller.combined(feedXml)
 
-  implicit val feedMarchaller: ToResponseMarshaller[Future[Feed]] =
-    Marshaller.oneOf(xmlFeedMarshaller)
+  implicit val feedMarchaller: ToResponseMarshaller[Future[Feed]] = Marshaller.oneOf(xmlFeedMarshaller)
 
 }

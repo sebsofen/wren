@@ -5,8 +5,8 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
-import controller.PostsController
-import data.PostsRepository
+import controller.{AuthorsController, PostsController}
+import data.{AuthorsRepository, PostsRepository}
 
 import scala.collection.JavaConversions._
 
@@ -25,22 +25,21 @@ object BlogEngine extends App with rest.Router {
   case class BlogSpec(name: String,
                       postdir: String,
                       blogController: PostsController,
+                      authorsController: AuthorsController,
                       guiFiles: String)
 
   lazy val blogspecs = (for {
     entry <- config.getObject("blogs").entrySet
     blogname = entry.getKey
     postsrepo = entry.getValue.atKey(blogname).getString(blogname + ".posts")
+    authorsrepo = entry.getValue.atKey(blogname).getString(blogname + ".authors")
     guifiles = entry.getValue.atKey(blogname).getString(blogname + ".guifiles")
-    blogController = new PostsController(
-        new PostsRepository(blogname, postsrepo))
-  } yield
-    (blogname, BlogSpec(blogname, postsrepo, blogController, guifiles))).toMap
+    blogController = new PostsController(new PostsRepository(blogname, postsrepo))
+    authorsController = new AuthorsController(new AuthorsRepository(blogname, authorsrepo))
+  } yield (blogname, BlogSpec(blogname, postsrepo, blogController, authorsController, guifiles))).toMap
 
   println(blogspecs)
 
-  Http().bindAndHandle(route,
-                       config.getString("http.interface"),
-                       config.getInt("http.port"))
+  Http().bindAndHandle(route, config.getString("http.interface"), config.getInt("http.port"))
 
 }
