@@ -69,6 +69,5 @@ object Posts {
       (m.post.content.toLowerCase contains searchStr.toLowerCase) || (m.metadata.title.toLowerCase contains searchStr.toLowerCase)
 
   def emptyPost =
-    PostAsm(PostMetadata("d", 1, Set.empty[String], Some("hi"), None, None),
-            Post("hi"))
+    PostAsm(PostMetadata("d", 1, Set.empty[String], Some("hi"), None, None), Post("hi"))
 }
