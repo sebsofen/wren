@@ -24,6 +24,7 @@ object BlogEngine extends App with rest.Router {
 
   case class BlogSpec(name: String,
                       postdir: String,
+                      authorsdir: String,
                       blogController: PostsController,
                       authorsController: AuthorsController,
                       guiFiles: String)
@@ -36,7 +37,7 @@ object BlogEngine extends App with rest.Router {
     guifiles = entry.getValue.atKey(blogname).getString(blogname + ".guifiles")
     blogController = new PostsController(new PostsRepository(blogname, postsrepo))
     authorsController = new AuthorsController(new AuthorsRepository(blogname, authorsrepo))
-  } yield (blogname, BlogSpec(blogname, postsrepo, blogController, authorsController, guifiles))).toMap
+  } yield (blogname, BlogSpec(blogname, postsrepo, authorsrepo, blogController, authorsController, guifiles))).toMap
 
   println(blogspecs)
 

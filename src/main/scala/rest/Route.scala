@@ -67,7 +67,7 @@ trait Router extends PostMarshalSupport with AuthorMarshalSupport with CorsSuppo
   }
 
   def blogroute(blog: BlogEngine.BlogSpec) =
-    path("authors" / "by-name" / Segment)   { name: String => //implement split by , for multiple authors requests!
+    path("authors" / "by-name" / Segment) { name: String => //implement split by , for multiple authors requests!
       get {
         complete {
           blog.authorsController.getAuthorByName(name.split(",")).map[ToResponseMarshallable] { case author => author }
@@ -75,6 +75,13 @@ trait Router extends PostMarshalSupport with AuthorMarshalSupport with CorsSuppo
       }
 
     } ~
+      path("authors") {
+        get {
+          complete {
+            blog.authorsController.getAuthorsList().map[ToResponseMarshallable] { case authors => authors }
+          }
+        }
+      } ~
       path("posts" / "by-slug" / Segment) { slug: String =>
         get {
           complete {
@@ -194,9 +201,14 @@ trait Router extends PostMarshalSupport with AuthorMarshalSupport with CorsSuppo
         }
 
       } ~
-      pathPrefix("static") {
+      pathPrefix("static" / "posts") {
         encodeResponse {
           getFromDirectory(blog.postdir)
+        }
+      } ~
+      pathPrefix("static" / "authors") {
+        encodeResponse {
+          getFromDirectory(blog.authorsdir)
         }
       } ~
       path("feed") {

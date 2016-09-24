@@ -13,4 +13,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class AuthorsController(
     ar: AuthorsRepository)(implicit config: Config, materializer: ActorMaterializer, ec: ExecutionContext) {
   def getAuthorByName(name: Seq[String]): Future[Seq[Author.Author]] = ar.getAuthorByNames(name)
+  def getAuthorsList(): Future[Seq[Author.Author]] = ar.getAuthorsList()
+
 }

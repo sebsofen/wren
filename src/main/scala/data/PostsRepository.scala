@@ -53,9 +53,9 @@ class PostsRepository(blogname: String,
                         f,
                         Post(
                             if (compact)
-                              scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString.split("\n\n")(0)
+                              scala.io.Source.fromFile(repodir + "/" + f.slug.get + "/Post.md").mkString.split("\n\n")(0)
                             else
-                              scala.io.Source.fromFile(repodir + "/" + f.slug + "/Post.md").mkString
+                              scala.io.Source.fromFile(repodir + "/" + f.slug.get + "/Post.md").mkString
                         )))
               .map(replaceIncludes))
       .map(f => f.filter(p => filterList(p, filterBy)))

@@ -18,6 +18,6 @@ import scala.concurrent.Future
   * Created by sebastian on 9/22/16.
   */
 trait AuthorMarshalSupport extends SprayJsonSupport  with DefaultJsonProtocol {
-  implicit val authorFormat = jsonFormat4(Author.Author)
+  implicit val authorFormat = jsonFormat5(Author.Author)
 
 }
