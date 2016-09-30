@@ -82,6 +82,13 @@ trait Router extends PostMarshalSupport with AuthorMarshalSupport with CorsSuppo
           }
         }
       } ~
+      path("posts" / "similar" / Segment) { slug: String =>
+        get {
+          complete {
+            blog.blogController.getSimilar(slug,3).map[ToResponseMarshallable] { case post => post }
+          }
+        }
+      } ~
       path("posts" / "by-slug" / Segment) { slug: String =>
         get {
           complete {

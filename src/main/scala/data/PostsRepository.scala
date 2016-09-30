@@ -45,21 +45,22 @@ class PostsRepository(blogname: String,
     getPostMetadatasUnorderedSource()
       .grouped(Int.MaxValue)
       .map(if (reverse) _.sortWith(sortBy) else _.sortWith(sortBy).reverse)
-      .map(
-          f =>
-            f.map(
-                  f =>
-                    PostAsm(
-                        f,
-                        Post(
-                            if (compact)
-                              scala.io.Source.fromFile(repodir + "/" + f.slug.get + "/Post.md").mkString.split("\n\n")(0)
-                            else
-                              scala.io.Source.fromFile(repodir + "/" + f.slug.get + "/Post.md").mkString
-                        )))
-              .map(replaceIncludes))
+      .map(f => {
+        f.map(
+            f =>
+              PostAsm(f,
+                      Post(
+                          if (compact)
+                            scala.io.Source.fromFile(repodir + "/" + f.slug.get + "/Post.md").mkString.split("\n\n")(0)
+                          else
+                            scala.io.Source.fromFile(repodir + "/" + f.slug.get + "/Post.md").mkString
+                      )))
+      }.map(replaceIncludes))
+      .map { f =>
+        f
+      }
       .map(f => f.filter(p => filterList(p, filterBy)))
-      .map(_.drop(offset).take(limit))
+      .map(_.slice(offset, offset + limit))
       .runWith(Sink.head)
 
   def filterList(post: PostAsm, filterList: List[PostAsm => Boolean]): Boolean = {

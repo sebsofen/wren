@@ -12,7 +12,7 @@ object Posts {
                           created: Long,
                           tags: Set[String] = Set(),
                           slug: Option[String],
-                          author: Option[Seq[String]],
+                          authors: Option[Set[String]],
                           coverImage: Option[String]) {
     def getSlug = slug.get
   }
@@ -47,7 +47,7 @@ object Posts {
   def filterGetAllFunc: PostAsm => Boolean = m => true
 
   def filterBySlug(slug: String): PostAsm => Boolean =
-    m => m.metadata.slug == slug
+    m => m.metadata.slug.get == slug
 
   /**
     * filter posts by tags, allow all posts that match at least one tag in tags
