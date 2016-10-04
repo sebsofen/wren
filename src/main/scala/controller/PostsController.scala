@@ -3,11 +3,12 @@ package controller
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import application.ApplicationConfig
 import com.typesafe.config.Config
 import data.PostsRepository
 import model.Posts
 import model.Posts._
-import model.PostsHandler.{PostNotFound, BlogError}
+import model.PostsHandler.{BlogError, PostNotFound}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,7 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * Created by sebastian on 15/04/16.
   */
 class PostsController(
-    pr: PostsRepository)(implicit config: Config, materializer: ActorMaterializer, ec: ExecutionContext) {
+    pr: PostsRepository)(implicit config: ApplicationConfig, materializer: ActorMaterializer, ec: ExecutionContext) {
 
   /**
     * simply get post by slug
@@ -108,7 +109,7 @@ class PostsController(
       sum += math.pow(v1 - v2, 2)
     }
     println("moooin" + sum)
-    math.sqrt(sum)
+    math.sqrt(sum) / keyset_union.size //normalize by size
   }
 
   def vectorizePost(post: PostAsm): Map[String, Int] =

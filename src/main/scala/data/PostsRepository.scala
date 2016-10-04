@@ -5,6 +5,7 @@ import java.io.File
 import akka.http.scaladsl.model.DateTime
 import akka.stream.scaladsl._
 import akka.stream.ActorMaterializer
+import application.ApplicationConfig
 import com.typesafe.config.Config
 import model.Posts
 import model.Posts._
@@ -15,7 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Codec
 
 class PostsRepository(blogname: String,
-                      repdir: String)(implicit config: Config, materializer: ActorMaterializer, ec: ExecutionContext)
+                      repdir: String)(implicit config: ApplicationConfig, materializer: ActorMaterializer, ec: ExecutionContext)
     extends PostMarshalSupport
     with RepositoryTrait {
   implicit val codec = Codec("UTF-8")
@@ -135,10 +136,10 @@ class PostsRepository(blogname: String,
               Feed(FeedMeta(
                        blogname = blogname,
                        updated = DateTime(psts.head.metadata.created * 1000l),
-                       blogurl = config.getString("blogs." + blogname + ".blogurl"),
+                       blogurl = config.BLOGSPECS.filter(_.name == blogname).head.blogurl,
                        id = "id",
                        author = "author",
-                       postsUrlPref = config.getString("blogs." + blogname + ".blogurl")
+                       postsUrlPref = config.BLOGSPECS.filter(_.name == blogname).head.blogurl
                    ),
                    psts)))
   }

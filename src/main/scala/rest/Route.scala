@@ -10,26 +10,27 @@ import akka.actor._
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server._
-import application.BlogEngine
+import application.{ApplicationConfig, BlogEngine}
 import data.PostsRepository
-import scala.concurrent.{Promise, Future, ExecutionContextExecutor}
-import akka.http.scaladsl.model.{StatusCodes, HttpResponse}
+
+import scala.concurrent.{ExecutionContextExecutor, Future, Promise}
+import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.util.Timeout
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
 import model.Posts._
 import model.{Posts, PostsHandler}
-import model.PostsHandler.{PostNotFound, BlogError, GetPostBySlug}
+import model.PostsHandler.{BlogError, GetPostBySlug, PostNotFound}
 import spray.json.DefaultJsonProtocol
-import akka.actor.{ActorSystem, Actor, Props}
+import akka.actor.{Actor, ActorSystem, Props}
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.util.Timeout
 import akka.util.Timeout
+
 import scala.concurrent.duration._
 import scala.util.Success
-
 import controller.PostsController
 
 /**
@@ -42,7 +43,7 @@ trait Router extends PostMarshalSupport with AuthorMarshalSupport with CorsSuppo
 
   implicit def executor: ExecutionContextExecutor
   implicit val materializer: ActorMaterializer
-  implicit val cfg: Config
+  implicit val cfg: ApplicationConfig
   val logger: LoggingAdapter
 
   val route = corsHandler {
@@ -55,14 +56,12 @@ trait Router extends PostMarshalSupport with AuthorMarshalSupport with CorsSuppo
     } ~
       pathPrefix("") {
         encodeResponse {
-          val a = getFromDirectory(BlogEngine.blogspecs.head._2.guiFiles) // return first blog as default
+          getFromDirectory(BlogEngine.blogspecs(cfg.DEFAULTBLOG).guiFiles) // return first blog as default
 
-          a
-          //getFromFile()
         }
       } ~
       pathPrefix("") {
-        getFromFile(BlogEngine.blogspecs.head._2.guiFiles + "/index.html")
+        getFromFile(BlogEngine.blogspecs(cfg.DEFAULTBLOG).guiFiles + "/index.html")
       }
   }
 
@@ -85,7 +84,7 @@ trait Router extends PostMarshalSupport with AuthorMarshalSupport with CorsSuppo
       path("posts" / "similar" / Segment) { slug: String =>
         get {
           complete {
-            blog.blogController.getSimilar(slug,3).map[ToResponseMarshallable] { case post => post }
+            blog.blogController.getSimilar(slug, 3).map[ToResponseMarshallable] { case post => post }
           }
         }
       } ~

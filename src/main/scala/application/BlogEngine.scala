@@ -19,7 +19,8 @@ object BlogEngine extends App with rest.Router {
   override implicit val executor = system.dispatcher
   override implicit val materializer = ActorMaterializer()
   val config = ConfigFactory.load()
-  override implicit val cfg = config
+  override implicit val cfg = new ApplicationConfig(config)
+
   override val logger = Logging(system, getClass)
 
   case class BlogSpec(name: String,
@@ -30,16 +31,15 @@ object BlogEngine extends App with rest.Router {
                       guiFiles: String)
 
   lazy val blogspecs = (for {
-    entry <- config.getObject("blogs").entrySet
-    blogname = entry.getKey
-    postsrepo = entry.getValue.atKey(blogname).getString(blogname + ".posts")
-    authorsrepo = entry.getValue.atKey(blogname).getString(blogname + ".authors")
-    guifiles = entry.getValue.atKey(blogname).getString(blogname + ".guifiles")
-    blogController = new PostsController(new PostsRepository(blogname, postsrepo))
-    authorsController = new AuthorsController(new AuthorsRepository(blogname, authorsrepo))
-  } yield (blogname, BlogSpec(blogname, postsrepo, authorsrepo, blogController, authorsController, guifiles))).toMap
-
-  println(blogspecs)
+    entry <- cfg.BLOGSPECS
+  } yield
+    (entry.name,
+     BlogSpec(entry.name,
+              entry.postrepo,
+              entry.authorsrepo,
+              new PostsController(new PostsRepository(entry.name, entry.postrepo)),
+              new AuthorsController(new AuthorsRepository(entry.name, entry.authorsrepo)),
+              entry.guiRepo))).toMap
 
   Http().bindAndHandle(route, config.getString("http.interface"), config.getInt("http.port"))
 
