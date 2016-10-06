@@ -50,9 +50,10 @@ trait Router extends PostMarshalSupport with AuthorMarshalSupport with CorsSuppo
     pathPrefix("v1" / Segment) { blog: String =>
       BlogEngine.blogspecs.get(blog) match {
         case Some(x) => blogroute(x)
-        case None => complete { HttpResponse(StatusCodes.NotFound) }
+        case None => complete {
+          HttpResponse(StatusCodes.NotFound)
+        }
       }
-
     } ~
       pathPrefix("") {
         encodeResponse {
