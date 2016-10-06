@@ -1,4 +1,4 @@
 .idea
-target
+target/*
 !target/scala-2.11/blog-assembly-1.0.jar
 project
