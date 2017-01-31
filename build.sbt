@@ -1,6 +1,6 @@
-import AssemblyKeys._ // put this at the top of the file
+//import AssemblyKeys._ // put this at the top of the file
 
-assemblySettings
+//assemblySettings
 
 name := "blog"
 
